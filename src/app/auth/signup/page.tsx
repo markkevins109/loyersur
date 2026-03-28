@@ -1,12 +1,15 @@
 'use client';
 import React from 'react';
 import { LangProvider } from '@/lib/lang';
-import HomePage from './HomePage';
+import AuthLayout from '../AuthLayout';
+import SignupForm from './SignupForm';
 
 export default function Page() {
   return (
     <LangProvider>
-      <HomePage />
+      <AuthLayout>
+        <SignupForm />
+      </AuthLayout>
     </LangProvider>
   );
 }
