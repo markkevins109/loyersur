@@ -1,9 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// During build time on Vercel, these might be missing if not configured in the dashboard.
+// We use a fallback to prevent the build worker from crashing.
+export const supabase = createClient(
+  supabaseUrl || 'https://placeholder-url-for-build.supabase.co',
+  supabaseAnonKey || 'placeholder-key'
+);
 
 // ─── TypeScript types matching our DB schema ────────────────────────────────
 
