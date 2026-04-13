@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { LangProvider, useLang } from '@/lib/lang';
+import { useLang } from '@/lib/lang';
 import AuthLayout from '../AuthLayout';
 import { Mail, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
@@ -115,7 +115,7 @@ function ForgotForm() {
             background: '#f8f7f4', border: '1px solid #ede9e2', borderRadius: 10,
             padding: '0.9rem', fontSize: '0.8rem', color: '#888', marginBottom: '1.5rem',
           }}>
-            💡 {lang === 'fr' ? 'Vérifiez vos spams si vous ne trouvez pas l'email.' : "Check your spam folder if you don't find the email."}
+            💡 {lang === 'fr' ? 'Vérifiez vos spams si vous ne trouvez pas l&apos;email.' : "Check your spam folder if you don't find the email."}
           </div>
         </div>
       )}
@@ -135,10 +135,8 @@ function ForgotForm() {
 
 export default function Page() {
   return (
-    <LangProvider>
-      <AuthLayout>
-        <ForgotForm />
-      </AuthLayout>
-    </LangProvider>
+    <AuthLayout>
+      <ForgotForm />
+    </AuthLayout>
   );
 }

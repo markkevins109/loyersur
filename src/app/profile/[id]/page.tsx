@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import Link from 'next/link';
-import { LangProvider, useLang } from '@/lib/lang';
+import { useLang } from '@/lib/lang';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import PropertyCard from '@/components/PropertyCard';
@@ -142,9 +142,5 @@ function ProfileContent({ id }: { id: string }) {
 }
 
 export default function Page({ params }: { params: { id: string } }) {
-  return (
-    <LangProvider>
-      <ProfileContent id={params.id} />
-    </LangProvider>
-  );
+  return <ProfileContent id={params.id} />;
 }

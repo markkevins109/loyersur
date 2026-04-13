@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { LangProvider, useLang } from '@/lib/lang';
+import { useLang } from '@/lib/lang';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { mockProperties, mockPayments, formatPrice } from '@/lib/mockData';
@@ -224,5 +224,5 @@ function LandlordDashboard() {
 }
 
 export default function Page() {
-  return <LangProvider><LandlordDashboard /></LangProvider>;
+  return <LandlordDashboard />;
 }
