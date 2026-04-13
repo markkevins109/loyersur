@@ -3,52 +3,131 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { LangProvider, useLang } from '@/lib/lang';
 import AuthLayout from '../AuthLayout';
-import { Mail, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { Mail, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 function ForgotForm() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setErrorMsg('');
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/reset-password`,
+    });
+    setLoading(false);
+    if (error) {
+      setErrorMsg(error.message);
+    } else {
+      setSent(true);
+    }
+  };
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 animate-fade-in-up">
+    <div className="animate-fade-in-up">
       {!sent ? (
         <>
-          <div className="text-center mb-7">
-            <div className="w-14 h-14 bg-gradient-to-br from-[#1E3A5F] to-[#2a5298] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <Mail className="w-6 h-6 text-white" />
+          {/* Header */}
+          <div style={{ marginBottom: '1.75rem' }}>
+            <div style={{
+              width: 46, height: 46, background: '#e8f2ee', borderRadius: 12,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              marginBottom: '1rem',
+            }}>
+              <Mail size={20} color="#1a4d3a" />
             </div>
-            <h1 className="text-2xl font-black text-gray-900 mb-1">{t('forgot_title')}</h1>
-            <p className="text-gray-500 text-sm">{t('forgot_sub')}</p>
+            <h1 style={{ fontWeight: 800, fontSize: '1.6rem', color: '#1c1c1c', marginBottom: '0.35rem', letterSpacing: '-0.5px' }}>
+              {t('forgot_title')}
+            </h1>
+            <p style={{ color: '#888', fontSize: '0.88rem' }}>{t('forgot_sub')}</p>
           </div>
 
-          <form onSubmit={e => { e.preventDefault(); setSent(true); }} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('login_email')}</label>
-              <input id="forgot-email" type="email" value={email} onChange={e => setEmail(e.target.value)}
-                placeholder="vous@email.ci" className="input-field" required />
+          {errorMsg && (
+            <div style={{
+              background: '#fff5f5', border: '1px solid #fca5a5', borderRadius: 10,
+              padding: '11px 14px', marginBottom: '1.25rem', fontSize: '0.83rem', color: '#b91c1c',
+            }}>
+              ⚠️ {errorMsg}
             </div>
-            <button id="forgot-submit" type="submit"
-              className="w-full bg-[#1E3A5F] text-white py-3.5 rounded-xl font-bold hover:bg-[#152844] transition-all duration-200 shadow-md flex items-center justify-center gap-2">
-              <Mail className="w-4 h-4" />
-              {t('forgot_btn')}
+          )}
+
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div>
+              <label style={{ display: 'block', fontWeight: 600, fontSize: '0.82rem', color: '#444', marginBottom: 6 }}>
+                {t('login_email')}
+              </label>
+              <input
+                id="forgot-email"
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="vous@email.ci"
+                className="input-field"
+                required
+                disabled={loading}
+                suppressHydrationWarning
+              />
+            </div>
+
+            <button
+              id="forgot-submit"
+              type="submit"
+              disabled={loading}
+              style={{
+                width: '100%', padding: '0.85rem',
+                background: loading ? '#2d6b52' : '#1a4d3a',
+                color: '#fff', border: 'none', borderRadius: 8,
+                fontWeight: 700, fontSize: '0.95rem',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                transition: 'all 0.2s',
+              }}>
+              <Mail size={16} />
+              <span>{loading ? (lang === 'fr' ? 'Envoi…' : 'Sending…') : t('forgot_btn')}</span>
             </button>
           </form>
         </>
       ) : (
-        <div className="text-center py-6">
-          <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle2 className="w-7 h-7 text-green-600" />
+        /* Success state */
+        <div style={{ textAlign: 'center', padding: '1rem 0' }}>
+          <div style={{
+            width: 64, height: 64, background: '#e8f2ee', borderRadius: '50%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            margin: '0 auto 1.25rem',
+          }}>
+            <CheckCircle2 size={30} color="#1a4d3a" />
           </div>
-          <h2 className="font-black text-gray-900 text-xl mb-2">Email envoyé !</h2>
-          <p className="text-gray-500 text-sm mb-6">Vérifiez votre boîte mail à {email}</p>
+          <h2 style={{ fontWeight: 800, fontSize: '1.3rem', color: '#1c1c1c', marginBottom: '0.5rem' }}>
+            {lang === 'fr' ? 'Email envoyé !' : 'Email sent!'}
+          </h2>
+          <p style={{ color: '#888', fontSize: '0.86rem', lineHeight: 1.6, marginBottom: '1.5rem' }}>
+            {lang === 'fr'
+              ? `Un lien de réinitialisation a été envoyé à `
+              : `A reset link has been sent to `}
+            <strong style={{ color: '#1c1c1c' }}>{email}</strong>
+          </p>
+          <div style={{
+            background: '#f8f7f4', border: '1px solid #ede9e2', borderRadius: 10,
+            padding: '0.9rem', fontSize: '0.8rem', color: '#888', marginBottom: '1.5rem',
+          }}>
+            💡 {lang === 'fr' ? 'Vérifiez vos spams si vous ne trouvez pas l'email.' : "Check your spam folder if you don't find the email."}
+          </div>
         </div>
       )}
 
       <Link href="/auth/login" id="back-to-login"
-        className="flex items-center justify-center gap-1.5 text-sm text-gray-500 hover:text-[#1E3A5F] mt-4 transition-colors duration-200">
-        <ArrowLeft className="w-3.5 h-3.5" />
-        {t('back')} — {t('login_title')}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+          marginTop: '1.25rem', fontSize: '0.84rem', color: '#666', textDecoration: 'none',
+          fontWeight: 500,
+        }}>
+        <ArrowLeft size={14} />
+        {lang === 'fr' ? 'Retour à la connexion' : 'Back to login'}
       </Link>
     </div>
   );
@@ -57,7 +136,9 @@ function ForgotForm() {
 export default function Page() {
   return (
     <LangProvider>
-      <AuthLayout><ForgotForm /></AuthLayout>
+      <AuthLayout>
+        <ForgotForm />
+      </AuthLayout>
     </LangProvider>
   );
 }

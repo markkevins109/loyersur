@@ -1,12 +1,7 @@
 'use client';
 import React from 'react';
-import { LangProvider } from '@/lib/lang';
 import HomePage from './HomePage';
 
 export default function Page() {
-  return (
-    <LangProvider>
-      <HomePage />
-    </LangProvider>
-  );
+  return <HomePage />;
 }

@@ -1,5 +1,5 @@
 'use client';
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 type Lang = 'fr' | 'en';
 
@@ -51,6 +51,18 @@ const translations = {
     step2_desc: 'Parcourez des annonces vérifiées ou publiez votre bien. Géolocalisation intégrée.',
     step3_title: 'Payez en toute sécurité',
     step3_desc: 'Effectuez vos paiements via Mobile Money. Recevez vos quittances automatiquement.',
+
+    // Auth Layout specific
+    auth_tag: "🇨🇮 Côte d'Ivoire No.1",
+    auth_title_part1: "La plateforme",
+    auth_title_accent: "immobilière",
+    auth_title_part2: "de confiance",
+    auth_desc: "Connectez propriétaires et locataires en toute sécurité. Paiements, contrats et quittances — tout en un.",
+    auth_feature1: "Profils 100% vérifiés",
+    auth_feature2: "Paiement Mobile Money",
+    auth_feature3: "Sans intermédiaire",
+    auth_feature4: "Quittances automatiques",
+    auth_footer: "Accueil",
 
     // Listings
     listings_title: 'Annonces disponibles',
@@ -138,6 +150,54 @@ const translations = {
     profile_joined: 'Membre depuis',
     profile_verified: 'Identité vérifiée',
 
+    // Extra Auth
+    signup_i_am: 'Je suis un…',
+    signup_tenant_sub: 'Trouvez et payez votre loyer en ligne',
+    signup_landlord_sub: 'Publiez vos biens et gérez vos locataires',
+    signup_continue: 'Continuer',
+    signup_success: 'Compte créé ! Redirection…',
+    signup_creating: 'Création en cours…',
+    signup_terms: "En créant un compte, vous acceptez nos conditions d'utilisation.",
+    signup_min_chars: 'Minimum 6 caractères',
+    login_signing_in: 'Connexion…',
+    login_no_account_yet: 'Pas encore de compte ?',
+    login_signup_cta: 'Créer un compte gratuit →',
+    generic_error: 'Une erreur est survenue. Veuillez réessayer.',
+    back_to_home: 'Accueil',
+
+    // CNI Verify
+    verify_title: "Vérification d'identité",
+    verify_sub: "Requis pour les propriétaires afin de sécuriser la plateforme",
+    verify_consent_title: "Notice de consentement — Loi n°2013-450",
+    verify_consent_desc: "En soumettant votre pièce d'identité, vous autorisez LoyerSûr CI à traiter temporairement vos données personnelles aux fins de vérification d'identité uniquement. Vos données ne seront pas conservées au-delà de 24 heures. Conformément à la Loi n°2013-450.",
+    verify_step_front: "Recto de votre Carte Nationale d'Identité (CNI)",
+    verify_step_back: "Verso de votre CNI (contenant la zone MRZ)",
+    verify_step_privacy: "Images traitées en mémoire uniquement — jamais stockées",
+    verify_accept: "J'accepte — Commencer la vérification",
+    verify_upload_title: "📷 Téléchargez votre CNI",
+    verify_upload_sub: "Photographiez votre CNI à plat, sous bonne lumière, sans reflets.",
+    verify_front_label: "① Recto",
+    verify_back_label: "② Verso (MRZ)",
+    verify_front_hint: "Recto (nom, photo)",
+    verify_back_hint: "Verso (MRZ)",
+    verify_tip_title: "Conseil :",
+    verify_tip_desc: "Assurez-vous que les 3 lignes du bas (code MRZ) sont nettes et entièrement visibles sur le verso.",
+    verify_check_quality: "Qualité insuffisante",
+    verify_check_quality_desc: "Veuillez reprendre la photo dans un bon éclairage, à plat, sans reflets.",
+    verify_retry_photos: "Reprendre les photos",
+    verify_mrz_title: "🔡 Code MRZ",
+    verify_mrz_sub: "Saisissez les 3 lignes de caractères en bas du verso de votre CNI.",
+    verify_mrz_line: "Ligne",
+    verify_btn: "Vérifier mon identité",
+    verify_checking: "Vérification en cours…",
+    verify_pass_title: "Identité vérifiée !",
+    verify_pass_sub: "Votre identité a été vérifiée avec succès. Redirection vers votre tableau de bord…",
+    verify_fail_title: "Vérification échouée",
+    verify_fail_attempts: "Il vous reste 1 tentative.",
+    verify_retry_btn: "Réessayer",
+    verify_final_title: "Compte suspendu",
+    verify_final_sub: "Vérification manuelle requise.",
+
     // Testimonials
     testimonials_title: 'Ce que disent nos utilisateurs',
     testimonials_sub: 'Des milliers de personnes nous font confiance',
@@ -217,6 +277,18 @@ const translations = {
     step2_desc: 'Browse verified listings or publish your property. Built-in geolocation.',
     step3_title: 'Pay securely',
     step3_desc: 'Make payments via Mobile Money. Receive your receipts automatically.',
+
+    // Auth Layout specific
+    auth_tag: "🇨🇮 Côte d'Ivoire No.1",
+    auth_title_part1: "The trusted",
+    auth_title_accent: "real estate",
+    auth_title_part2: "platform",
+    auth_desc: "Connect landlords and tenants securely. Payments, contracts, and receipts — all in one.",
+    auth_feature1: "100% Verified Profiles",
+    auth_feature2: "Mobile Money Payments",
+    auth_feature3: "No Intermediaries",
+    auth_feature4: "Automatic Receipts",
+    auth_footer: "Home",
 
     // Listings
     listings_title: 'Available listings',
@@ -304,6 +376,54 @@ const translations = {
     profile_joined: 'Member since',
     profile_verified: 'Identity verified',
 
+    // Extra Auth
+    signup_i_am: 'I am a…',
+    signup_tenant_sub: 'Find and pay rent online',
+    signup_landlord_sub: 'List properties and manage tenants',
+    signup_continue: 'Continue',
+    signup_success: 'Account created! Redirecting...',
+    signup_creating: 'Creating account...',
+    signup_terms: 'By creating an account, you agree to our terms of use.',
+    signup_min_chars: 'Minimum 6 characters',
+    login_signing_in: 'Signing in...',
+    login_no_account_yet: "Don't have an account?",
+    login_signup_cta: 'Create a free account →',
+    generic_error: 'An error occurred. Please try again.',
+    back_to_home: 'Home',
+
+    // CNI Verify
+    verify_title: "Identity Verification",
+    verify_sub: "Required for landlords to secure the platform",
+    verify_consent_title: "Consent Notice — Law n°2013-450",
+    verify_consent_desc: "By submitting your ID, you authorize LoyerSûr CI to temporarily process your personal data for identity verification purposes only. Your data will not be kept longer than 24 hours. In accordance with Law n°2013-450.",
+    verify_step_front: "Front of your National Identity Card (CNI)",
+    verify_step_back: "Back of your CNI (containing the MRZ zone)",
+    verify_step_privacy: "Images processed in memory only — never stored",
+    verify_accept: "I accept — Start verification",
+    verify_upload_title: "📷 Upload your ID",
+    verify_upload_sub: "Photograph your ID flat, in good light, without reflections.",
+    verify_front_label: "① Front",
+    verify_back_label: "② Back (MRZ)",
+    verify_front_hint: "Front (name, photo)",
+    verify_back_hint: "Back (MRZ)",
+    verify_tip_title: "Tip:",
+    verify_tip_desc: "Make sure the bottom 3 lines (MRZ code) are sharp and fully visible on the back.",
+    verify_check_quality: "Insufficient quality",
+    verify_check_quality_desc: "Please retake the photo in good lighting, flat, without reflections.",
+    verify_retry_photos: "Retake photos",
+    verify_mrz_title: "🔡 MRZ Code",
+    verify_mrz_sub: "Enter the 3 lines of characters at the bottom of the back of your ID.",
+    verify_mrz_line: "Line",
+    verify_btn: "Verify my identity",
+    verify_checking: "Verification in progress…",
+    verify_pass_title: "Identity verified!",
+    verify_pass_sub: "Your identity has been successfully verified. Redirecting to your dashboard…",
+    verify_fail_title: "Verification failed",
+    verify_fail_attempts: "You have 1 attempt remaining.",
+    verify_retry_btn: "Retry",
+    verify_final_title: "Account suspended",
+    verify_final_sub: "Manual verification required.",
+
     // Testimonials
     testimonials_title: 'What our users say',
     testimonials_sub: 'Thousands of people trust us',
@@ -354,9 +474,26 @@ const LangContext = createContext<LangContextType>({
 
 export function LangProvider({ children }: { children: ReactNode }) {
   const [lang, setLang] = useState<Lang>('fr');
-  const t = (key: TranslationKey): string => translations[lang][key] || key;
+
+  useEffect(() => {
+    const saved = localStorage.getItem('app-lang') as Lang;
+    if (saved && (saved === 'fr' || saved === 'en')) {
+      setLang(saved);
+    }
+  }, []);
+
+  const handleSetLang = (l: Lang) => {
+    setLang(l);
+    localStorage.setItem('app-lang', l);
+    document.documentElement.lang = l;
+  };
+
+  const t = (key: TranslationKey): string => {
+    return translations[lang][key] || key;
+  };
+
   return (
-    <LangContext.Provider value={{ lang, setLang, t }}>
+    <LangContext.Provider value={{ lang, setLang: handleSetLang, t }}>
       {children}
     </LangContext.Provider>
   );

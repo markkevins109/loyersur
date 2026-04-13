@@ -6,10 +6,8 @@ import SignupForm from './SignupForm';
 
 export default function Page() {
   return (
-    <LangProvider>
-      <AuthLayout>
-        <SignupForm />
-      </AuthLayout>
-    </LangProvider>
+    <AuthLayout>
+      <SignupForm />
+    </AuthLayout>
   );
 }

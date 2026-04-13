@@ -46,30 +46,8 @@ export default function Footer() {
                 { label: t('footer_blog'), href: '/blog' },
                 { label: t('nav_listings'), href: '/listings' },
                 { label: t('footer_contact'), href: '/contact' },
-              ].map(({ label, href }) => (
-                <li key={href}>
-                  <Link href={href} style={{ color: '#999', fontSize: '0.875rem', textDecoration: 'none', transition: 'color 0.15s' }}
-                    onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
-                    onMouseLeave={e => (e.currentTarget.style.color = '#999')}>
-                    {label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Support */}
-          <div>
-            <h4 style={{ fontWeight: 600, fontSize: '0.84rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#aaa', marginBottom: '1rem' }}>
-              {t('footer_support')}
-            </h4>
-            <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {[
-                { label: t('footer_faq'), href: '/faq' },
-                { label: t('footer_terms'), href: '/terms' },
-                { label: t('footer_privacy'), href: '/privacy' },
-                { label: lang === 'fr' ? 'Dashboard Locataire' : 'Tenant Dashboard', href: '/dashboard/tenant' },
-                { label: lang === 'fr' ? 'Dashboard Propriétaire' : 'Landlord Dashboard', href: '/dashboard/landlord' },
+                { label: t('nav_tenant'), href: '/dashboard/tenant' },
+                { label: t('nav_landlord'), href: '/dashboard/landlord' },
               ].map(({ label, href }) => (
                 <li key={href}>
                   <Link href={href} style={{ color: '#999', fontSize: '0.875rem', textDecoration: 'none', transition: 'color 0.15s' }}

@@ -13,6 +13,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { LangProvider } from "@/lib/lang";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -20,7 +22,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr">
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <LangProvider>
+          {children}
+        </LangProvider>
+      </body>
     </html>
   );
 }
