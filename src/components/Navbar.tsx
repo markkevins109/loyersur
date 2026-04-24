@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useLang } from '@/lib/lang';
-import { Home, Menu, X, Globe } from 'lucide-react';
+import { Home, Menu, X, Globe, LogIn } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Navbar() {
   const { lang, setLang, t } = useLang();
@@ -10,110 +11,136 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 10);
+    const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  const navLinks = [
+    { href: '/listings', label: t('nav_listings') },
+    { href: '/about', label: t('nav_about') },
+  ];
+
   return (
     <nav
-      style={{
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
-        background: '#fff',
-        borderBottom: scrolled ? '1px solid #e0ddd7' : '1px solid transparent',
-        boxShadow: scrolled ? '0 1px 8px rgba(0,0,0,0.06)' : 'none',
-        transition: 'all 0.2s',
-      }}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all border-b ${
+        scrolled ? 'bg-white/95 backdrop-blur-md border-border-soft py-3 shadow-sm' : 'bg-white border-transparent py-5'
+      }`}
     >
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 64 }}>
+      <div className="container px-6 mx-auto flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" id="navbar-logo" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
-          <Home size={20} color="#1a4d3a" strokeWidth={2} />
-          <span style={{ fontWeight: 700, fontSize: '1.1rem', color: '#1a4d3a' }}>LoyerSûr CI</span>
+        <Link 
+          href="/" 
+          id="navbar-logo" 
+          className="flex items-center gap-2 group transition-transform active:scale-95"
+        >
+          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary text-white shadow-lg shadow-primary/20 group-hover:rotate-6 transition-transform">
+            <Home size={22} strokeWidth={2.5} />
+          </div>
+          <span className="font-display font-black text-xl tracking-tight text-primary">
+            LoyerSûr <span className="text-accent">CI</span>
+          </span>
         </Link>
 
         {/* Desktop links */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 28 }} className="desktop-nav">
-          <Link href="/listings" id="nav-listings"
-            style={{ color: '#555', fontSize: '0.9rem', fontWeight: 500, textDecoration: 'none', transition: 'color 0.15s' }}
-            onMouseEnter={e => (e.currentTarget.style.color = '#1a4d3a')}
-            onMouseLeave={e => (e.currentTarget.style.color = '#555')}>
-            {t('nav_listings')}
-          </Link>
-          <Link href="/about" id="nav-about"
-            style={{ color: '#555', fontSize: '0.9rem', fontWeight: 500, textDecoration: 'none', transition: 'color 0.15s' }}
-            onMouseEnter={e => (e.currentTarget.style.color = '#1a4d3a')}
-            onMouseLeave={e => (e.currentTarget.style.color = '#555')}>
-            {t('nav_about')}
-          </Link>
+        <div className="hidden lg:flex items-center gap-10">
+          <div className="flex items-center gap-8">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="text-sm font-black text-text-main hover:text-primary transition-colors relative group"
+              >
+                {link.label}
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-accent transition-all duration-300 group-hover:w-full" />
+              </Link>
+            ))}
+          </div>
 
-          {/* Language toggle */}
-          <button
-            id="lang-toggle"
-            onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 5,
-              background: 'none', border: '1px solid #e0ddd7',
-              borderRadius: 6, padding: '5px 10px', cursor: 'pointer',
-              fontSize: '0.82rem', fontWeight: 500, color: '#555',
-              transition: 'all 0.15s',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = '#1a4d3a'; e.currentTarget.style.color = '#1a4d3a'; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = '#e0ddd7'; e.currentTarget.style.color = '#555'; }}
-          >
-            <Globe size={13} />
-            {lang === 'fr' ? 'FR' : 'EN'}
-          </button>
+          <div className="h-6 w-px bg-border-soft" />
 
-          <Link href="/auth/login" id="nav-login"
-            style={{ color: '#555', fontSize: '0.9rem', fontWeight: 500, textDecoration: 'none' }}
-            onMouseEnter={e => (e.currentTarget.style.color = '#1a4d3a')}
-            onMouseLeave={e => (e.currentTarget.style.color = '#555')}>
-            {t('nav_login')}
-          </Link>
+          <div className="flex items-center gap-4">
+            {/* Language toggle */}
+            <button
+              id="lang-toggle"
+              onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg border-2 border-border-soft text-xs font-black text-text-main hover:bg-white hover:border-primary hover:text-primary transition-all"
+            >
+              <Globe size={14} />
+              {lang === 'fr' ? 'FR' : 'EN'}
+            </button>
 
-          <Link href="/auth/signup" id="nav-signup" className="btn-green" style={{ fontSize: '0.88rem', padding: '0.55rem 1.2rem' }}>
-            {t('nav_signup')}
-          </Link>
+            <Link 
+              href="/auth/login" 
+              className="flex items-center gap-2 text-sm font-black text-text-main hover:text-primary transition-colors"
+            >
+              <LogIn size={16} />
+              {t('nav_login')}
+            </Link>
+
+            <Link href="/auth/signup" className="btn-primary py-2 px-5 text-sm">
+              {t('nav_signup')}
+            </Link>
+          </div>
         </div>
 
-        {/* Mobile */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }} className="mobile-nav">
-          <button id="lang-toggle-mobile" onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')}
-            style={{ background: 'none', border: '1px solid #e0ddd7', borderRadius: 6, padding: '5px 8px', fontSize: '0.8rem', cursor: 'pointer', color: '#555' }}>
+        {/* Mobile menu toggle */}
+        <div className="flex lg:hidden items-center gap-3">
+          <button
+            onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')}
+            className="w-10 h-10 flex items-center justify-center rounded-xl border border-border-soft bg-white/50"
+          >
             {lang === 'fr' ? '🇫🇷' : '🇬🇧'}
           </button>
-          <button onClick={() => setMenuOpen(!menuOpen)} id="mobile-menu-toggle"
-            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#333' }}>
-            {menuOpen ? <X size={22} /> : <Menu size={22} />}
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="w-10 h-10 flex items-center justify-center rounded-xl bg-primary text-white"
+          >
+            {menuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
       </div>
 
       {/* Mobile dropdown */}
-      {menuOpen && (
-        <div style={{ background: '#fff', borderTop: '1px solid #e0ddd7', padding: '1rem 1.5rem' }} className="animate-fade-in">
-          {[
-            { href: '/listings', label: t('nav_listings') },
-            { href: '/about', label: t('nav_about') },
-            { href: '/auth/login', label: t('nav_login') },
-          ].map(({ href, label }) => (
-            <Link key={href} href={href} onClick={() => setMenuOpen(false)}
-              style={{ display: 'block', padding: '10px 0', color: '#333', fontWeight: 500, textDecoration: 'none', borderBottom: '1px solid #f0ede7', fontSize: '0.95rem' }}>
-              {label}
-            </Link>
-          ))}
-          <Link href="/auth/signup" onClick={() => setMenuOpen(false)} className="btn-green"
-            style={{ display: 'block', textAlign: 'center', marginTop: 12, fontSize: '0.9rem' }}>
-            {t('nav_signup')}
-          </Link>
-        </div>
-      )}
-
-      <style>{`
-        @media (max-width: 768px) { .desktop-nav { display: none !important; } }
-        @media (min-width: 769px) { .mobile-nav { display: none !important; } }
-      `}</style>
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="lg:hidden bg-white border-t border-border-soft overflow-hidden"
+          >
+            <div className="container px-6 py-8 flex flex-col gap-4">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMenuOpen(false)}
+                  className="text-lg font-black text-text-main p-2 hover:bg-bg-cream rounded-xl transition-colors"
+                >
+                  {link.label}
+                </Link>
+              ))}
+              <div className="h-px bg-border-soft my-2" />
+              <Link
+                href="/auth/login"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center gap-2 text-lg font-black text-text-main p-2"
+              >
+                <LogIn size={20} />
+                {t('nav_login')}
+              </Link>
+              <Link
+                href="/auth/signup"
+                onClick={() => setMenuOpen(false)}
+                className="btn-primary w-full py-4 text-lg mt-2"
+              >
+                {t('nav_signup')}
+              </Link>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   );
 }

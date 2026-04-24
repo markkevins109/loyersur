@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useLang } from '@/lib/lang';
 import { Property, formatPrice } from '@/lib/mockData';
-import { MapPin, Star, Bed, Bath, Maximize2 } from 'lucide-react';
+import { MapPin, Star, Bed, Bath, Maximize2, CheckCircle } from 'lucide-react';
 
 interface PropertyCardProps {
   property: Property;
@@ -15,85 +15,68 @@ export default function PropertyCard({ property }: PropertyCardProps) {
   const title = lang === 'fr' ? property.title : property.titleEn;
 
   return (
-    <div className="property-card" id={`property-card-${property.id}`}>
-      {/* Image */}
-      <div style={{ position: 'relative', height: 200, overflow: 'hidden', background: '#f0ede7' }}>
+    <div className="bg-white border-2 border-border-soft rounded-2xl overflow-hidden group hover:border-primary transition-all shadow-sm hover:shadow-xl" id={`property-card-${property.id}`}>
+      {/* Image Container */}
+      <div className="relative aspect-[4/3] overflow-hidden">
         <Image
           src={property.images[0]}
           alt={title}
           fill
-          style={{ objectFit: 'cover', transition: 'transform 0.4s ease' }}
-          className="prop-img"
+          className="object-cover transition-transform duration-500 group-hover:scale-110"
         />
-        {/* Verified */}
+        
+        {/* Verified Badge - Solid */}
         {property.verified && (
-          <span className="badge-verified" style={{ position: 'absolute', top: 10, left: 10 }}>
-            ✓ {t('verified')}
-          </span>
+          <div className="absolute top-4 left-4 flex items-center gap-1 px-3 py-1 bg-white text-primary text-[10px] font-black uppercase tracking-widest rounded-lg border-2 border-primary/10 shadow-sm">
+            <CheckCircle size={12} className="text-emerald-500" />
+            {t('verified')}
+          </div>
         )}
-        {/* Price */}
-        <div style={{
-          position: 'absolute', bottom: 10, right: 10,
-          background: '#1a4d3a', color: '#fff',
-          fontSize: '0.82rem', fontWeight: 700,
-          padding: '4px 10px', borderRadius: 5,
-        }}>
-          {formatPrice(property.price)}<span style={{ fontWeight: 400, opacity: 0.8 }}>{t('per_month')}</span>
+
+        {/* Price - Solid */}
+        <div className="absolute bottom-4 left-4">
+          <div className="bg-primary text-white px-3 py-1.5 rounded-lg font-black text-sm shadow-lg">
+            {formatPrice(property.price)}
+            <span className="text-[10px] font-medium opacity-80 ml-1">/ {t('per_month')}</span>
+          </div>
         </div>
       </div>
 
       {/* Content */}
-      <div style={{ padding: '1rem' }}>
-        <h3 style={{ fontWeight: 700, fontSize: '0.92rem', color: '#1c1c1c', marginBottom: '0.35rem', lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+      <div className="p-5">
+        <h3 className="font-black text-lg text-text-main group-hover:text-primary transition-colors line-clamp-1 mb-2">
           {title}
         </h3>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#888', fontSize: '0.8rem', marginBottom: '0.75rem' }}>
-          <MapPin size={12} color="#c8501e" />
+        <div className="flex items-center gap-1.5 text-text-muted text-xs font-bold mb-4">
+          <MapPin size={14} className="text-accent" />
           {property.neighborhood}, {property.city}
         </div>
 
-        {/* Stats */}
-        <div style={{ display: 'flex', gap: 14, fontSize: '0.78rem', color: '#666', marginBottom: '0.85rem', paddingBottom: '0.85rem', borderBottom: '1px solid #f0ede7' }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <Bed size={12} color="#aaa" /> {property.rooms} {t('rooms')}
-          </span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <Bath size={12} color="#aaa" /> {property.bathrooms}
-          </span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <Maximize2 size={12} color="#aaa" /> {property.area}m²
-          </span>
-        </div>
-
-        {/* Rating + CTA */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <Star size={13} color="#c8501e" fill="#c8501e" />
-            <span style={{ fontWeight: 700, fontSize: '0.82rem', color: '#1c1c1c' }}>{property.rating}</span>
-            <span style={{ color: '#aaa', fontSize: '0.78rem' }}>({property.reviewCount})</span>
+        {/* Specs - High Contrast */}
+        <div className="grid grid-cols-3 gap-2 py-4 mb-5 border-y-2 border-border-soft">
+          <div className="flex flex-col items-center gap-1">
+            <Bed size={16} className="text-primary" />
+            <span className="text-[10px] font-black text-text-main uppercase tracking-wider">{property.rooms} {t('rooms')}</span>
           </div>
-          <Link
-            href={`/listings/${property.id}`}
-            id={`see-details-${property.id}`}
-            style={{
-              background: '#1a4d3a', color: '#fff',
-              fontSize: '0.78rem', fontWeight: 600,
-              padding: '6px 14px', borderRadius: 5,
-              textDecoration: 'none',
-              transition: 'background 0.15s',
-            }}
-            onMouseEnter={e => (e.currentTarget.style.background = '#133829')}
-            onMouseLeave={e => (e.currentTarget.style.background = '#1a4d3a')}
-          >
-            {t('see_details')}
-          </Link>
+          <div className="flex flex-col items-center gap-1 border-x-2 border-border-soft">
+            <Bath size={16} className="text-primary" />
+            <span className="text-[10px] font-black text-text-main uppercase tracking-wider">{property.bathrooms} {t('bath')}</span>
+          </div>
+          <div className="flex flex-col items-center gap-1">
+            <Maximize2 size={16} className="text-primary" />
+            <span className="text-[10px] font-black text-text-main uppercase tracking-wider">{property.area}m²</span>
+          </div>
         </div>
-      </div>
 
-      <style>{`
-        .property-card:hover .prop-img { transform: scale(1.04); }
-      `}</style>
+        {/* Action */}
+        <Link
+          href={`/listings/${property.id}`}
+          className="w-full flex items-center justify-center gap-2 py-3 bg-bg-cream text-primary font-black text-sm rounded-xl border-2 border-primary/5 hover:bg-primary hover:text-white transition-all"
+        >
+          {t('see_details')}
+        </Link>
+      </div>
     </div>
   );
 }

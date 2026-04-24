@@ -1,167 +1,69 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap');
 @import "tailwindcss";
 
-:root {
-  --green: #1a4d3a;
-  --green-dark: #133829;
-  --green-mid: #2d6b52;
-  --green-light: #e8f2ee;
-  --orange: #c8501e;
-  --orange-light: #f5ede8;
-  --beige: #f5f0e8;
-  --beige-dark: #ede7da;
-  --charcoal: #1c1c1c;
-  --gray-text: #555;
-  --border: #e0ddd7;
-  --white: #ffffff;
+@theme {
+  --font-display: 'Outfit', sans-serif;
+  --font-sans: 'Inter', sans-serif;
+  
+  /* High Contrast Color Palette */
+  --color-primary: #1a4d3a;      /* Deep Forest Green */
+  --color-primary-dark: #0f2e23;
+  --color-accent: #c8501e;       /* Rich Burnt Orange */
+  --color-accent-soft: #fdf2ed;
+  --color-bg-cream: #f8f6f2;     /* Warm Neutral Background */
+  --color-text-main: #111827;    /* Near Black for readability */
+  --color-text-muted: #4b5563;   /* Slate Gray */
+  --color-border-soft: #e5e7eb;
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-html { scroll-behavior: smooth; }
-
-body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background-color: var(--white);
-  color: var(--charcoal);
-  -webkit-font-smoothing: antialiased;
+@layer base {
+  body {
+    @apply bg-white text-text-main font-sans antialiased;
+  }
+  h1, h2, h3, h4, .font-display {
+    @apply font-display tracking-tight;
+  }
 }
 
-/* ─── Buttons ─── */
-.btn-green {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  background-color: var(--green);
-  color: #fff;
-  font-weight: 600;
-  font-size: 0.9rem;
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.2s, transform 0.15s;
-  text-decoration: none;
-}
-.btn-green:hover { background-color: var(--green-dark); transform: translateY(-1px); }
+@layer components {
+  /* High Visibility Buttons */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white font-black rounded-xl 
+           hover:bg-primary-dark hover:scale-[1.02] active:scale-95 transition-all shadow-md shadow-primary/10;
+  }
+  
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-primary border-2 border-primary font-black rounded-xl 
+           hover:bg-bg-cream transition-all;
+  }
 
-.btn-outline-green {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  background-color: transparent;
-  color: var(--green);
-  font-weight: 600;
-  font-size: 0.9rem;
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
-  border: 1.5px solid var(--green);
-  cursor: pointer;
-  transition: all 0.2s;
-  text-decoration: none;
-}
-.btn-outline-green:hover { background-color: var(--green); color: #fff; }
+  /* Clear, Readable Cards */
+  .premium-card {
+    @apply bg-white border border-border-soft rounded-[1.5rem] p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300;
+  }
 
-.btn-outline-white {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  background-color: transparent;
-  color: #fff;
-  font-weight: 600;
-  font-size: 0.9rem;
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
-  border: 1.5px solid rgba(255,255,255,0.7);
-  cursor: pointer;
-  transition: all 0.2s;
-  text-decoration: none;
-}
-.btn-outline-white:hover { background-color: rgba(255,255,255,0.15); }
+  .listing-card {
+    @apply bg-white border border-border-soft rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500;
+  }
 
-/* ─── Cards ─── */
-.feature-card {
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 1.5rem;
-  transition: box-shadow 0.2s, transform 0.2s;
-}
-.feature-card:hover {
-  box-shadow: 0 4px 20px rgba(26,77,58,0.1);
-  transform: translateY(-2px);
+  /* Status Badges */
+  .premium-badge {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 bg-accent/10 text-accent text-[10px] font-black uppercase tracking-widest rounded-full border border-accent/20;
+  }
+
+  /* Input Fields */
+  .premium-input {
+    @apply w-full bg-white border-2 border-border-soft rounded-xl px-4 py-3 text-text-main font-medium 
+           focus:border-primary focus:outline-none transition-all;
+  }
 }
 
-.property-card {
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  overflow: hidden;
-  transition: box-shadow 0.2s, transform 0.2s;
-}
-.property-card:hover {
-  box-shadow: 0 6px 24px rgba(26,77,58,0.12);
-  transform: translateY(-3px);
+/* Utils */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
 }
 
-/* ─── Input ─── */
-.input-field {
-  width: 100%;
-  padding: 0.7rem 1rem;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  font-size: 0.9rem;
-  color: var(--charcoal);
-  background: #fff;
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  font-family: inherit;
+.animate-float {
+  animation: float 4s ease-in-out infinite;
 }
-.input-field:focus {
-  border-color: var(--green);
-  box-shadow: 0 0 0 3px rgba(26,77,58,0.08);
-}
-.input-field::placeholder { color: #aaa; }
-
-/* ─── Badge ─── */
-.badge-verified {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: var(--green-light);
-  color: var(--green);
-  font-size: 0.72rem;
-  font-weight: 600;
-  padding: 3px 9px;
-  border-radius: 99px;
-}
-
-/* ─── Animations ─── */
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(26,77,58,0.3); }
-  50%       { box-shadow: 0 0 0 8px rgba(26,77,58,0); }
-}
-
-.animate-fade-in-up  { animation: fadeInUp 0.5s ease forwards; }
-.animate-fade-in     { animation: fadeIn 0.4s ease forwards; }
-.animate-spin        { animation: spin 0.8s linear infinite; }
-.animate-pulse-glow  { animation: pulse-glow 2s infinite; }
-
-/* scrollbar */
-::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-track { background: #f1f1f1; }
-::-webkit-scrollbar-thumb { background: var(--green); border-radius: 3px; }

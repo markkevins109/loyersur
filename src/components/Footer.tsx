@@ -2,57 +2,52 @@
 import React from 'react';
 import Link from 'next/link';
 import { useLang } from '@/lib/lang';
-import { Home } from 'lucide-react';
+import { Home, Mail, Phone, MapPin, Instagram, Facebook, Twitter } from 'lucide-react';
 
 export default function Footer() {
   const { t, lang } = useLang();
 
   return (
-    <footer style={{ background: '#1c1c1c', color: '#fff', padding: '3.5rem 1.5rem 2rem' }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-        {/* Top */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '2.5rem', marginBottom: '2.5rem' }}>
+    <footer className="bg-text-main text-white pt-20 pb-10">
+      <div className="container px-6 mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
           {/* Brand */}
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '0.75rem' }}>
-              <Home size={18} color="#c8501e" />
-              <span style={{ fontWeight: 700, fontSize: '1.05rem' }}>LoyerSûr CI</span>
-            </div>
-            <p style={{ color: '#999', fontSize: '0.84rem', lineHeight: 1.7 }}>
+          <div className="space-y-6">
+            <Link href="/" className="flex items-center gap-2 group">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-accent text-white group-hover:rotate-6 transition-transform">
+                <Home size={18} strokeWidth={2.5} />
+              </div>
+              <span className="font-display font-black text-xl tracking-tight">
+                LoyerSûr <span className="text-accent">CI</span>
+              </span>
+            </Link>
+            <p className="text-text-muted text-sm leading-relaxed max-w-xs">
               {t('footer_desc')}
             </p>
-            {/* Mobile money */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: '1rem' }}>
-              {['Orange Money', 'MTN', 'Moov', 'Wave'].map(n => (
-                <span key={n} style={{
-                  background: 'rgba(255,255,255,0.08)',
-                  fontSize: '0.72rem',
-                  padding: '3px 8px',
-                  borderRadius: 4,
-                  color: '#aaa',
-                }}>{n}</span>
+            <div className="flex items-center gap-4">
+              {[Instagram, Facebook, Twitter].map((Icon, idx) => (
+                <a key={idx} href="#" className="w-10 h-10 flex items-center justify-center rounded-full border border-white/10 hover:bg-white/10 transition-colors">
+                  <Icon size={18} />
+                </a>
               ))}
             </div>
           </div>
 
           {/* Company */}
           <div>
-            <h4 style={{ fontWeight: 600, fontSize: '0.84rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#aaa', marginBottom: '1rem' }}>
+            <h4 className="font-display font-black text-sm uppercase tracking-widest text-accent mb-6">
               {t('footer_company')}
             </h4>
-            <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <ul className="space-y-4">
               {[
                 { label: t('footer_about'), href: '/about' },
-                { label: t('footer_blog'), href: '/blog' },
                 { label: t('nav_listings'), href: '/listings' },
                 { label: t('footer_contact'), href: '/contact' },
                 { label: t('nav_tenant'), href: '/dashboard/tenant' },
                 { label: t('nav_landlord'), href: '/dashboard/landlord' },
               ].map(({ label, href }) => (
                 <li key={href}>
-                  <Link href={href} style={{ color: '#999', fontSize: '0.875rem', textDecoration: 'none', transition: 'color 0.15s' }}
-                    onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
-                    onMouseLeave={e => (e.currentTarget.style.color = '#999')}>
+                  <Link href={href} className="text-text-muted hover:text-white transition-colors text-sm font-medium">
                     {label}
                   </Link>
                 </li>
@@ -60,23 +55,59 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Contact */}
+          {/* Quick Support */}
           <div>
-            <h4 style={{ fontWeight: 600, fontSize: '0.84rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#aaa', marginBottom: '1rem' }}>
-              Contact
+            <h4 className="font-display font-black text-sm uppercase tracking-widest text-accent mb-6">
+              Support
             </h4>
-            <p style={{ color: '#999', fontSize: '0.875rem', lineHeight: 1.7 }}>
-              contact@loyersur.ci<br />
-              +225 27 20 00 00 00<br />
-              Abidjan, Côte d&apos;Ivoire 🇨🇮
+            <ul className="space-y-4">
+              <li>
+                <div className="flex items-center gap-3 text-text-muted text-sm">
+                  <Mail size={16} className="text-accent" />
+                  contact@loyersur.ci
+                </div>
+              </li>
+              <li>
+                <div className="flex items-center gap-3 text-text-muted text-sm">
+                  <Phone size={16} className="text-accent" />
+                  +225 27 20 00 00 00
+                </div>
+              </li>
+              <li>
+                <div className="flex items-center gap-3 text-text-muted text-sm">
+                  <MapPin size={16} className="text-accent" />
+                  Abidjan, Côte d&apos;Ivoire
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          {/* Mobile Money */}
+          <div>
+            <h4 className="font-display font-black text-sm uppercase tracking-widest text-accent mb-6">
+              Paiements
+            </h4>
+            <div className="flex flex-wrap gap-2">
+              {['Orange Money', 'MTN', 'Moov', 'Wave', 'Visa'].map(n => (
+                <span key={n} className="px-3 py-1.5 bg-white/5 rounded-lg text-[10px] font-black uppercase tracking-widest text-text-muted border border-white/5">
+                  {n}
+                </span>
+              ))}
+            </div>
+            <p className="mt-6 text-xs text-text-muted italic">
+              * 100% sécurisé via notre passerelle certifiée.
             </p>
           </div>
         </div>
 
-        {/* Divider */}
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-          <p style={{ color: '#666', fontSize: '0.82rem' }}>{t('footer_copyright')}</p>
-          <p style={{ color: '#666', fontSize: '0.82rem' }}>Made with ♥ in Côte d&apos;Ivoire</p>
+        {/* Bottom */}
+        <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-bold text-text-muted uppercase tracking-widest">
+          <p>{t('footer_copyright')}</p>
+          <div className="flex items-center gap-6">
+            <Link href="/terms" className="hover:text-white">Conditions</Link>
+            <Link href="/privacy" className="hover:text-white">Confidentialité</Link>
+            <span className="text-accent">Made in CI 🇨🇮</span>
+          </div>
         </div>
       </div>
     </footer>
