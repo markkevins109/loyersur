@@ -42,19 +42,9 @@ export default function SignupForm() {
       return;
     }
 
-    const table = accountType === 'tenant' ? 'tenants' : 'landlords';
-    const { error: profileError } = await supabase.from(table).insert({
-      id: authData.user.id,
-      full_name: form.name,
-      email: form.email,
-      phone: `+225${form.phone.replace(/\s/g, '')}`,
-    });
-
-    if (profileError) {
-      setStatus('error');
-      setErrorMsg(t('generic_error'));
-      return;
-    }
+    // Profile row is auto-created by the handle_new_user DB trigger.
+    // Just wait briefly so the trigger completes before redirecting.
+    await new Promise(r => setTimeout(r, 300));
 
     setStatus('success');
     setTimeout(() => {

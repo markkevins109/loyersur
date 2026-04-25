@@ -219,6 +219,34 @@ const translations = {
     footer_faq: 'FAQ',
     footer_blog: 'Blog',
 
+    // Booking Calendar
+    booking_select_date: 'Choisissez une date',
+    booking_select_time: 'Choisissez un créneau',
+    booking_message_placeholder: 'Message pour le propriétaire (facultatif)',
+    booking_confirm: 'Confirmer la réservation',
+    booking_confirming: 'Réservation en cours…',
+    booking_success_title: 'Visite réservée !',
+    booking_success_desc: "Votre demande de visite a été envoyée au propriétaire. Vous recevrez une confirmation bientôt.",
+    booking_login_required: 'Veuillez vous connecter pour réserver une visite.',
+    booking_error: 'Échec de la réservation. Veuillez réessayer.',
+    booking_back: 'Choisir une autre date',
+    booking_book_another: 'Réserver une autre visite',
+
+    // Tenant Dashboard — Bookings tab
+    dash_bookings: 'Mes visites',
+    dash_no_bookings: "Vous n'avez aucune demande de visite.",
+    dash_no_saved: "Vous n'avez aucune propriété sauvegardée.",
+    dash_no_messages: "Aucun message pour le moment.",
+    dash_booking_status_pending: 'En attente',
+    dash_booking_status_confirmed: 'Confirmée',
+    dash_booking_status_rescheduled: 'Reportée',
+    dash_booking_status_cancelled: 'Annulée',
+    dash_booking_status_completed: 'Terminée',
+    dash_sign_out: 'Se déconnecter',
+    dash_signing_out: 'Déconnexion…',
+    dash_new_date: 'Nouvelle date :',
+    dash_loading: 'Chargement de votre tableau de bord…',
+
     // General
     loading: 'Chargement...',
     back: 'Retour',
@@ -444,6 +472,34 @@ const translations = {
     footer_support: 'Support',
     footer_faq: 'FAQ',
     footer_blog: 'Blog',
+
+    // Booking Calendar
+    booking_select_date: 'Select a date',
+    booking_select_time: 'Select a time slot',
+    booking_message_placeholder: 'Message for the landlord (optional)',
+    booking_confirm: 'Confirm booking',
+    booking_confirming: 'Booking…',
+    booking_success_title: 'Viewing booked!',
+    booking_success_desc: 'Your viewing request has been sent to the landlord. You will receive a confirmation soon.',
+    booking_login_required: 'Please log in to book a viewing.',
+    booking_error: 'Booking failed. Please try again.',
+    booking_back: 'Choose another date',
+    booking_book_another: 'Book another viewing',
+
+    // Tenant Dashboard — Bookings tab
+    dash_bookings: 'My viewings',
+    dash_no_bookings: 'You have no viewing requests.',
+    dash_no_saved: 'You have no saved properties.',
+    dash_no_messages: 'No messages yet.',
+    dash_booking_status_pending: 'Pending',
+    dash_booking_status_confirmed: 'Confirmed',
+    dash_booking_status_rescheduled: 'Rescheduled',
+    dash_booking_status_cancelled: 'Cancelled',
+    dash_booking_status_completed: 'Completed',
+    dash_sign_out: 'Sign out',
+    dash_signing_out: 'Signing out…',
+    dash_new_date: 'New date:',
+    dash_loading: 'Loading your dashboard…',
 
     // General
     loading: 'Loading...',

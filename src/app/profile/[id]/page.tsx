@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { use } from 'react';
 import Link from 'next/link';
 import { useLang } from '@/lib/lang';
 import Navbar from '@/components/Navbar';
@@ -141,6 +141,7 @@ function ProfileContent({ id }: { id: string }) {
   );
 }
 
-export default function Page({ params }: { params: { id: string } }) {
-  return <ProfileContent id={params.id} />;
+export default function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+  return <ProfileContent id={id} />;
 }

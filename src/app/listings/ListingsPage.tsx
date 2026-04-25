@@ -1,31 +1,79 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLang } from '@/lib/lang';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import PropertyCard from '@/components/PropertyCard';
+import { supabase, type Property as DBProperty } from '@/lib/supabase';
 import { mockProperties } from '@/lib/mockData';
 import { Search, SlidersHorizontal, X, MapPin, Building2, Wallet2, LayoutGrid } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// Adapter: converts a DB property to the shape PropertyCard expects
+function toCardShape(p: DBProperty) {
+  return {
+    id: p.id,
+    title: p.title,
+    titleEn: p.title_en ?? p.title,
+    description: p.description ?? '',
+    descriptionEn: p.description_en ?? p.description ?? '',
+    price: p.price,
+    city: p.city,
+    neighborhood: p.neighborhood,
+    rooms: p.bedrooms,
+    bathrooms: p.bathrooms,
+    area: p.area,
+    images: p.images ?? [],
+    landlordId: p.agent_id,
+    verified: p.verified,
+    rating: p.rating,
+    reviewCount: p.review_count,
+    features: p.features ?? [],
+    featuresEn: p.features_en ?? p.features ?? [],
+    coordinates: p.coordinates ?? { lat: 5.3559, lng: -4.007 },
+  };
+}
+
 export default function ListingsPage() {
   const { t, lang } = useLang();
   const [search, setSearch] = useState('');
-  const [filterCity, setFilterCity] = useState('');
   const [filterNeighborhood, setFilterNeighborhood] = useState('');
   const [filterMaxPrice, setFilterMaxPrice] = useState('');
   const [filterRooms, setFilterRooms] = useState('');
   const [filterVerified, setFilterVerified] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
 
-  const neighborhoods = [...new Set(mockProperties.map(p => p.neighborhood))];
-  const cities = [...new Set(mockProperties.map(p => p.city))];
+  // DB properties — will be loaded from Supabase
+  const [dbProperties, setDbProperties] = useState<ReturnType<typeof toCardShape>[]>([]);
+  const [dbLoading, setDbLoading] = useState(true);
+  const [usingMock, setUsingMock] = useState(false);
 
-  const filtered = mockProperties.filter(p => {
+  useEffect(() => {
+    async function loadProperties() {
+      const { data, error } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('available', true)
+        .order('created_at', { ascending: false });
+
+      if (error || !data || data.length === 0) {
+        // Fall back to mock data if DB isn't set up yet
+        setUsingMock(true);
+        setDbProperties(mockProperties as ReturnType<typeof toCardShape>[]);
+      } else {
+        setDbProperties(data.map(p => toCardShape(p as DBProperty)));
+      }
+      setDbLoading(false);
+    }
+    loadProperties();
+  }, []);
+
+  const neighborhoods = [...new Set(dbProperties.map(p => p.neighborhood))];
+
+  const filtered = dbProperties.filter(p => {
     const title = lang === 'fr' ? p.title : p.titleEn;
     if (search && !title.toLowerCase().includes(search.toLowerCase()) &&
       !p.neighborhood.toLowerCase().includes(search.toLowerCase())) return false;
-    if (filterCity && p.city !== filterCity) return false;
     if (filterNeighborhood && p.neighborhood !== filterNeighborhood) return false;
     if (filterMaxPrice && p.price > Number(filterMaxPrice)) return false;
     if (filterRooms && p.rooms < Number(filterRooms)) return false;
@@ -34,11 +82,11 @@ export default function ListingsPage() {
   });
 
   const resetFilters = () => {
-    setSearch(''); setFilterCity(''); setFilterNeighborhood('');
+    setSearch(''); setFilterNeighborhood('');
     setFilterMaxPrice(''); setFilterRooms(''); setFilterVerified(false);
   };
 
-  const hasFilters = search || filterCity || filterNeighborhood || filterMaxPrice || filterRooms || filterVerified;
+  const hasFilters = search || filterNeighborhood || filterMaxPrice || filterRooms || filterVerified;
 
   return (
     <main className="min-h-screen bg-white">
@@ -52,10 +100,12 @@ export default function ListingsPage() {
               {t('listings_title')}
             </h1>
             <p className="text-emerald-100 font-medium text-lg mb-10">
-              {t('listings_sub')}
+              {usingMock
+                ? (lang === 'fr' ? 'Annonces de démonstration — connectez Supabase pour voir les vraies annonces' : 'Demo listings — connect Supabase to see real listings')
+                : t('listings_sub')}
             </p>
 
-            {/* Search Bar - Solid */}
+            {/* Search Bar */}
             <div className="relative max-w-2xl mx-auto flex gap-3 p-3 bg-white rounded-2xl shadow-xl">
               <div className="relative flex-1">
                 <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" />
@@ -84,7 +134,7 @@ export default function ListingsPage() {
       </section>
 
       <div className="container px-6 mx-auto py-12">
-        {/* Filter Panel - Solid & High Contrast */}
+        {/* Filter Panel */}
         <AnimatePresence>
           {showFilters && (
             <motion.div
@@ -107,24 +157,19 @@ export default function ListingsPage() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                  {[
-                    { label: t('filter_city'), icon: Building2, value: filterCity, setter: setFilterCity, options: cities, all: t('all_cities') },
-                    { label: t('filter_neighborhood'), icon: MapPin, value: filterNeighborhood, setter: setFilterNeighborhood, options: neighborhoods, all: t('filter_all') },
-                  ].map((filter, idx) => (
-                    <div key={idx} className="space-y-3">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-text-muted flex items-center gap-2">
-                        <filter.icon size={14} className="text-primary" /> {filter.label}
-                      </label>
-                      <select 
-                        value={filter.value} 
-                        onChange={e => filter.setter(e.target.value)} 
-                        className="w-full bg-bg-cream border-2 border-border-soft rounded-xl px-4 py-3 text-text-main font-black focus:border-primary outline-none transition-all"
-                      >
-                        <option value="">{filter.all}</option>
-                        {filter.options.map(o => <option key={o} value={o}>{o}</option>)}
-                      </select>
-                    </div>
-                  ))}
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-text-muted flex items-center gap-2">
+                      <MapPin size={14} className="text-primary" /> {t('filter_neighborhood')}
+                    </label>
+                    <select
+                      value={filterNeighborhood}
+                      onChange={e => setFilterNeighborhood(e.target.value)}
+                      className="w-full bg-bg-cream border-2 border-border-soft rounded-xl px-4 py-3 text-text-main font-black focus:border-primary outline-none transition-all"
+                    >
+                      <option value="">{t('filter_all')}</option>
+                      {neighborhoods.map(o => <option key={o} value={o}>{o}</option>)}
+                    </select>
+                  </div>
 
                   <div className="space-y-3">
                     <label className="text-[10px] font-black uppercase tracking-widest text-text-muted flex items-center gap-2">
@@ -148,19 +193,22 @@ export default function ListingsPage() {
                       {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}+ {t('rooms')}</option>)}
                     </select>
                   </div>
-                </div>
 
-                <div className="mt-8 flex items-center gap-3">
-                  <input 
-                    type="checkbox" 
-                    id="filter-verified" 
-                    checked={filterVerified} 
-                    onChange={e => setFilterVerified(e.target.checked)}
-                    className="w-6 h-6 rounded-lg border-2 border-border-soft text-primary focus:ring-primary cursor-pointer"
-                  />
-                  <label htmlFor="filter-verified" className="text-sm font-black text-text-main cursor-pointer">
-                    {t('filter_verified')}
-                  </label>
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-text-muted flex items-center gap-2">
+                      <Building2 size={14} className="text-primary" /> {t('filter_verified')}
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        id="filter-verified"
+                        checked={filterVerified}
+                        onChange={e => setFilterVerified(e.target.checked)}
+                        className="w-5 h-5 rounded border-2 border-border-soft text-primary"
+                      />
+                      <span className="font-black text-text-main text-sm">{lang === 'fr' ? 'Annonces vérifiées' : 'Verified only'}</span>
+                    </label>
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -170,33 +218,52 @@ export default function ListingsPage() {
         {/* Results Info */}
         <div className="flex items-center justify-between mb-10">
           <p className="text-text-muted font-bold">
-            <span className="text-primary font-black text-2xl">{filtered.length}</span>{' '}
+            <span className="text-primary font-black text-2xl">{dbLoading ? '…' : filtered.length}</span>{' '}
             {lang === 'fr' ? 'annonces trouvées' : 'listings found'}
+            {usingMock && <span className="ml-2 text-xs text-amber-600 font-medium">(données de démo)</span>}
           </p>
         </div>
 
-        {/* Results Grid */}
-        {filtered.length ? (
+        {/* Loading skeleton */}
+        {dbLoading && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {filtered.map((p) => (
-              <PropertyCard key={p.id} property={p} />
+            {[1,2,3,4].map(i => (
+              <div key={i} className="bg-white rounded-2xl overflow-hidden border border-border-soft animate-pulse">
+                <div className="h-48 bg-gray-200" />
+                <div className="p-4 space-y-3">
+                  <div className="h-4 bg-gray-200 rounded" />
+                  <div className="h-3 bg-gray-100 rounded w-2/3" />
+                  <div className="h-5 bg-gray-200 rounded w-1/2" />
+                </div>
+              </div>
             ))}
           </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-32 text-center bg-bg-cream rounded-[3rem] border-2 border-dashed border-border-soft">
-            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-6 shadow-sm">
-              <Search size={32} className="text-primary/20" />
+        )}
+
+        {/* Results Grid */}
+        {!dbLoading && (
+          filtered.length ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+              {filtered.map((p) => (
+                <PropertyCard key={p.id} property={p} />
+              ))}
             </div>
-            <h3 className="text-2xl font-black text-text-main mb-2">
-              {lang === 'fr' ? 'Aucun résultat trouvé' : 'No results found'}
-            </h3>
-            <p className="text-text-muted mb-8 max-w-sm font-medium">
-              Essayez de modifier vos critères de recherche.
-            </p>
-            <button onClick={resetFilters} className="btn-primary">
-              {t('filter_reset')}
-            </button>
-          </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-32 text-center bg-bg-cream rounded-[3rem] border-2 border-dashed border-border-soft">
+              <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-6 shadow-sm">
+                <Search size={32} className="text-primary/20" />
+              </div>
+              <h3 className="text-2xl font-black text-text-main mb-2">
+                {lang === 'fr' ? 'Aucun résultat trouvé' : 'No results found'}
+              </h3>
+              <p className="text-text-muted mb-8 max-w-sm font-medium">
+                {lang === 'fr' ? 'Essayez de modifier vos critères de recherche.' : 'Try adjusting your search filters.'}
+              </p>
+              <button onClick={resetFilters} className="btn-primary">
+                {t('filter_reset')}
+              </button>
+            </div>
+          )
         )}
       </div>
 

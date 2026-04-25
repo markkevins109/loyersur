@@ -35,12 +35,23 @@ export default function LoginForm() {
       return;
     }
 
-    // Redirect based on role stored in user_metadata
-    const role = data.user.user_metadata?.role as string | undefined;
+    // Fetch role from profiles table (source of truth)
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role, verified')
+      .eq('id', data.user.id)
+      .single();
+
+    const role = profile?.role ?? data.user.user_metadata?.role;
     setStatus('success');
 
     setTimeout(() => {
-      router.push(role === 'landlord' ? '/dashboard/landlord' : '/dashboard/tenant');
+      if (role === 'landlord') {
+        // Unverified landlords must complete ID verification first
+        router.push(profile?.verified ? '/dashboard/landlord' : '/auth/verify-cni');
+      } else {
+        router.push('/dashboard/tenant');
+      }
     }, 300);
   };
 
