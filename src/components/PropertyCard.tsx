@@ -70,7 +70,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           </div>
           <div className="flex flex-col items-center gap-1 border-x-2 border-border-soft">
             <Bath size={16} className="text-primary" />
-            <span className="text-[10px] font-black text-text-main uppercase tracking-wider">{property.bathrooms} {t('bath')}</span>
+            <span className="text-[10px] font-black text-text-main uppercase tracking-wider">{property.bathrooms} {t('detail_bathrooms')}</span>
           </div>
           <div className="flex flex-col items-center gap-1">
             <Maximize2 size={16} className="text-primary" />

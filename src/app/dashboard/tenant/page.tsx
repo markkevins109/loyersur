@@ -17,7 +17,7 @@ import {
 
 type Tab = 'bookings' | 'saved' | 'messages';
 
-interface BookingWithJoins extends Booking {
+interface BookingWithJoins extends Omit<Booking, 'properties' | 'agent'> {
   properties: {
     id: string;
     title: string;
