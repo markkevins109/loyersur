@@ -29,7 +29,7 @@ function mrzDateToDate(yymmdd: string): Date | null {
   const dd = parseInt(yymmdd.slice(4, 6), 10);
   if (isNaN(yy) || isNaN(mm) || isNaN(dd)) return null;
   const fullYear = yy <= 30 ? 2000 + yy : 1900 + yy;
-  return new Date(fullYear, mm - 1, dd);
+  return new Date(Date.UTC(fullYear, mm - 1, dd));
 }
 
 function hashCardNumber(cn: string): string {
@@ -81,8 +81,13 @@ export async function POST(req: NextRequest): Promise<NextResponse<VerifyRespons
 
   // ── 2. Manual Integrity Check for Ivory Coast (Special Case) ──────────────
   if (isCIV) {
-    const line1 = mrzLines[0]; // IDCIVCI0004420<789<<<<<<<<<<<<
-    const line2 = mrzLines[1]; // 6208129F3010105CIV216211718090
+    // Normalize lines 1 and 2 (Document Number and Dates) because they shouldn't contain letters O or N where numbers are expected.
+    // This fixes common OCR mistakes like reading '0' as 'O', 'N', or 'D', and 'I' as '1'.
+    let line1 = mrzLines[0].replace(/O/g, '0').replace(/N/g, '0'); 
+    let line2 = mrzLines[1].replace(/O/g, '0');
+    
+    // Ensure the CIV country code and CI prefix wasn't mangled by the number normalization
+    line1 = line1.replace(/^ID0IV0I/, 'IDCIVCI').replace(/^IDCIV0I/, 'IDCIVCI').replace(/^IDCIVC1/, 'IDCIVCI');
     
     // Check DOB Checksum
     const dob = line2.slice(0, 6);
@@ -102,10 +107,13 @@ export async function POST(req: NextRequest): Promise<NextResponse<VerifyRespons
     // Most Ivory Coast CNIs follow: Docs 5-13 + Optional bits
     const rawDocPart = line1.slice(5, 14).replace(/</g, '');
     const optPart = line1.slice(15, 20).replace(/</g, '');
-    const cardNumber = rawDocPart + optPart.slice(0, 2); // CI + digits
+    let cardNumber = rawDocPart + optPart.slice(0, 2); // CI + digits
     
-    if (!/CI\d+/.test(cardNumber)) {
-       return NextResponse.json({ status: 'FAIL', errorCode: 'CARD_FORMAT', message: 'Numéro de carte non reconnu.' });
+    // Sometimes the OCR reads CI as C1
+    cardNumber = cardNumber.replace(/^C1/, 'CI');
+
+    if (!/^CI\d+/.test(cardNumber)) {
+       return NextResponse.json({ status: 'FAIL', errorCode: 'CARD_FORMAT', message: `Numéro de carte non reconnu (${cardNumber}).` });
     }
 
     // Expiry verification
@@ -120,7 +128,10 @@ export async function POST(req: NextRequest): Promise<NextResponse<VerifyRespons
       verificationResult: {
         result: 'PASS',
         timestamp: new Date().toISOString(),
-        hashedCardNumber: hashCardNumber(cardNumber)
+        hashedCardNumber: hashCardNumber(cardNumber),
+        cardNumber: cardNumber,
+        dob: dob,
+        expiry: expDate.toISOString().split('T')[0] // return YYYY-MM-DD
       }
     });
   }
@@ -128,12 +139,18 @@ export async function POST(req: NextRequest): Promise<NextResponse<VerifyRespons
   // ── 3. Fallback to standard result if not CIV or if library was fine ───────
   if (result && result.valid) {
     const cardNumber = (result.fields.documentNumber as string).replace(/</g, '');
+    const dobStr = result.fields.birthDate as string;
+    const expStr = result.fields.expirationDate as string;
+
     return NextResponse.json({ 
-      status: 'PASS', 
+      status: 'PASS',  
       verificationResult: {
         result: 'PASS',
         timestamp: new Date().toISOString(),
-        hashedCardNumber: hashCardNumber(cardNumber)
+        hashedCardNumber: hashCardNumber(cardNumber),
+        cardNumber: cardNumber,
+        dob: dobStr,
+        expiry: expStr
       }
     });
   }

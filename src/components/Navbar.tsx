@@ -4,17 +4,57 @@ import Link from 'next/link';
 import { useLang } from '@/lib/lang';
 import { Home, Menu, X, Globe, LogIn } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '@/lib/supabase';
 
 export default function Navbar() {
   const { lang, setLang, t } = useLang();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [role, setRole] = useState<string | null>(null);
+  const [loadingAuth, setLoadingAuth] = useState(true);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', onScroll);
-    return () => window.removeEventListener('scroll', onScroll);
+
+    // Check auth status
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) {
+        setUser(data.user);
+        supabase.from('profiles').select('role').eq('id', data.user.id).single().then(({data: p}) => {
+           if (p) setRole(p.role);
+           setLoadingAuth(false);
+        });
+      } else {
+        setLoadingAuth(false);
+      }
+    });
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setUser(session.user);
+        supabase.from('profiles').select('role').eq('id', session.user.id).single().then(({data: p}) => {
+           if (p) setRole(p.role);
+           setLoadingAuth(false);
+        });
+      } else {
+        setUser(null);
+        setRole(null);
+        setLoadingAuth(false);
+      }
+    });
+
+    return () => { 
+      window.removeEventListener('scroll', onScroll);
+      authListener.subscription.unsubscribe();
+    };
   }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    window.location.href = '/';
+  };
 
   const navLinks = [
     { href: '/listings', label: t('nav_listings') },
@@ -70,17 +110,38 @@ export default function Navbar() {
               {lang === 'fr' ? 'FR' : 'EN'}
             </button>
 
-            <Link 
-              href="/auth/login" 
-              className="flex items-center gap-2 text-sm font-black text-text-main hover:text-primary transition-colors"
-            >
-              <LogIn size={16} />
-              {t('nav_login')}
-            </Link>
+            {loadingAuth ? (
+              <div className="w-32" /> /* Placeholder space */
+            ) : user ? (
+              <>
+                <Link 
+                  href={role === 'tenant' ? '/dashboard/tenant' : '/dashboard/landlord'} 
+                  className="flex items-center gap-2 text-sm font-black text-text-main hover:text-primary transition-colors"
+                >
+                  {lang === 'fr' ? 'Tableau de bord' : 'Dashboard'}
+                </Link>
+                <button 
+                  onClick={handleLogout} 
+                  className="btn-primary py-2 px-5 text-sm !bg-red-600 hover:!bg-red-700 !shadow-red-600/20"
+                >
+                  {lang === 'fr' ? 'Déconnexion' : 'Log out'}
+                </button>
+              </>
+            ) : (
+              <>
+                <Link 
+                  href="/auth/login" 
+                  className="flex items-center gap-2 text-sm font-black text-text-main hover:text-primary transition-colors"
+                >
+                  <LogIn size={16} />
+                  {t('nav_login')}
+                </Link>
 
-            <Link href="/auth/signup" className="btn-primary py-2 px-5 text-sm">
-              {t('nav_signup')}
-            </Link>
+                <Link href="/auth/signup" className="btn-primary py-2 px-5 text-sm">
+                  {t('nav_signup')}
+                </Link>
+              </>
+            )}
           </div>
         </div>
 
@@ -122,21 +183,41 @@ export default function Navbar() {
                 </Link>
               ))}
               <div className="h-px bg-border-soft my-2" />
-              <Link
-                href="/auth/login"
-                onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-2 text-lg font-black text-text-main p-2"
-              >
-                <LogIn size={20} />
-                {t('nav_login')}
-              </Link>
-              <Link
-                href="/auth/signup"
-                onClick={() => setMenuOpen(false)}
-                className="btn-primary w-full py-4 text-lg mt-2"
-              >
-                {t('nav_signup')}
-              </Link>
+              {loadingAuth ? null : user ? (
+                <>
+                  <Link
+                    href={role === 'tenant' ? '/dashboard/tenant' : '/dashboard/landlord'}
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-2 text-lg font-black text-text-main p-2"
+                  >
+                    {lang === 'fr' ? 'Tableau de bord' : 'Dashboard'}
+                  </Link>
+                  <button
+                    onClick={() => { setMenuOpen(false); handleLogout(); }}
+                    className="btn-primary w-full py-4 text-lg mt-2 !bg-red-600"
+                  >
+                    {lang === 'fr' ? 'Déconnexion' : 'Log out'}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/auth/login"
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-2 text-lg font-black text-text-main p-2"
+                  >
+                    <LogIn size={20} />
+                    {t('nav_login')}
+                  </Link>
+                  <Link
+                    href="/auth/signup"
+                    onClick={() => setMenuOpen(false)}
+                    className="btn-primary w-full py-4 text-lg mt-2"
+                  >
+                    {t('nav_signup')}
+                  </Link>
+                </>
+              )}
             </div>
           </motion.div>
         )}

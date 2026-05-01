@@ -270,7 +270,7 @@ export default function LandlordDashboard() {
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
       {/* ── Header ─────────────────────────────────────────── */}
-      <div style={{ background: '#133829', padding: '4.5rem 1.5rem 1.75rem' }}>
+      <div style={{ background: '#133829', padding: '7rem 1.5rem 1.75rem' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
           <div>
             <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.82rem', marginBottom: 4 }}>

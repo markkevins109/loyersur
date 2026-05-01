@@ -6,14 +6,16 @@ import {
   ShieldCheck, Upload, AlertCircle, CheckCircle2,
   RefreshCw, ChevronRight, Lock, Eye, X
 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import { extractMrzFromImage, parseMrzName, compareNames } from '@/lib/mrz-ocr';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Phase =
   | 'consent'       // Step 1 — Consent notice
   | 'upload'        // Step 2 — Upload front + back
-  | 'quality'       // Step 5 — Quality pre-check (client-side)
-  | 'mrz-input'     // Step 3 — Enter / parse MRZ lines
+  | 'extracting'    // Step 3 — OCR Extraction
   | 'checking'      // Spinner while API runs
+  | 'liveness'      // Step 4 — Face match and liveness
   | 'pass'          // Verification passed
   | 'fail'          // Verification failed (attempt 1)
   | 'fail-final'    // Verification failed (attempt 2 → manual review)
@@ -25,6 +27,7 @@ interface VerifyResult {
   status: VerifyStatus;
   errorCode?: string;
   message?: string;
+  verificationResult?: any;
 }
 
 interface ImageState {
@@ -134,10 +137,29 @@ export default function CniVerificationForm() {
   const frontRef = useRef<HTMLInputElement>(null);
   const backRef  = useRef<HTMLInputElement>(null);
 
-  // MRZ lines
-  const [mrzLine1, setMrzLine1] = useState('');
-  const [mrzLine2, setMrzLine2] = useState('');
-  const [mrzLine3, setMrzLine3] = useState('');
+  const [profileName, setProfileName] = useState('');
+  const [profileRole, setProfileRole] = useState('');
+  const [hasAgentId, setHasAgentId] = useState(false);
+  const [ocrProgress, setOcrProgress] = useState(0);
+
+  // Liveness check state
+  const [livenessInstruction, setLivenessInstruction] = useState('');
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  React.useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) {
+        supabase.from('profiles').select('full_name, role, agent_id').eq('id', data.user.id).single()
+          .then(({ data: pData }) => {
+            if (pData) {
+              setProfileName(pData.full_name);
+              setProfileRole(pData.role);
+              setHasAgentId(!!pData.agent_id);
+            }
+          });
+      }
+    });
+  }, []);
 
   const handleImageSelect = useCallback(async (side: 'front' | 'back', e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -161,20 +183,45 @@ export default function CniVerificationForm() {
     }
   }, [frontImg.preview, backImg.preview]);
 
-  const runQualityCheck = () => {
+  const startExtraction = async () => {
     if (!checkImageQuality(frontImg) || !checkImageQuality(backImg)) {
       setPhase('retry');
       return;
     }
-    setPhase('mrz-input');
-  };
+    
+    setPhase('extracting');
+    setOcrProgress(0);
 
-  const submitVerification = async () => {
-    const lines = [mrzLine1.trim(), mrzLine2.trim(), mrzLine3.trim()];
-    if (lines.some(l => l.length !== 30)) {
-       setErrorMsg(lang === 'fr' ? 'Chaque ligne doit avoir 30 caractères.' : 'Each line must be 30 characters.');
+    if (!backImg.file) return;
+
+    const result = await extractMrzFromImage(backImg.file, setOcrProgress);
+
+    if (!result.success || !result.lines) {
+       setErrorMsg(lang === 'fr' ? "Nous n'avons pas pu lire la zone MRZ. Veuillez prendre une photo plus nette." : "Could not read MRZ. Please take a clearer picture.");
+       setPhase('fail');
        return;
     }
+
+    const mrzName = parseMrzName(result.lines);
+    if (!mrzName) {
+       setErrorMsg(lang === 'fr' ? "Nous n'avons pas pu extraire le nom de la carte." : "Could not extract name from card.");
+       setPhase('fail');
+       return;
+    }
+
+    const match = compareNames(profileName, mrzName.surname, mrzName.givenNames);
+    if (match.level === 'MISMATCH') {
+       setErrorMsg(lang === 'fr' 
+          ? `Le nom sur la carte (${match.cardName}) ne correspond pas à votre profil (${match.profileName}).`
+          : `Name on card (${match.cardName}) does not match your profile (${match.profileName}).`);
+       setPhase('fail');
+       return;
+    }
+
+    submitVerification(result.lines);
+  };
+
+  const submitVerification = async (lines: string[]) => {
     setErrorMsg('');
     setPhase('checking');
 
@@ -187,11 +234,12 @@ export default function CniVerificationForm() {
 
       const data: VerifyResult = await res.json();
       if (data.status === 'PASS') {
-        setPhase('pass');
-        setSuccessMsg(t('verify_pass_sub'));
-        URL.revokeObjectURL(frontImg.preview || '');
-        URL.revokeObjectURL(backImg.preview || '');
-        setTimeout(() => router.push('/dashboard/landlord'), 2500);
+        const vRes = data.verificationResult;
+        
+        // ── Advance to biometric liveness check ──
+        setPhase('liveness');
+        setLivenessInstruction(lang === 'fr' ? 'Chargement de la caméra...' : 'Loading camera...');
+        startLivenessCheck(vRes, lines);
         return;
       }
 
@@ -207,10 +255,77 @@ export default function CniVerificationForm() {
     }
   };
 
+  const startLivenessCheck = async (vRes: any, lines: string[]) => {
+    try {
+      const { extractFaceDescriptor, checkLivenessAndMatch } = await import('@/lib/face-verification');
+
+      // 1. Extract face from the ID card
+      const img = new Image();
+      img.src = frontImg.preview || '';
+      await new Promise(r => { img.onload = r; });
+      const idDesc = await extractFaceDescriptor(img);
+
+      if (!idDesc) {
+        setErrorMsg(lang === 'fr' ? "Impossible de détecter un visage sur la pièce d'identité." : "Could not detect a face on the ID card.");
+        setPhase('fail');
+        return;
+      }
+
+      // 2. Open webcam
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+      }
+
+      // 3. Run Liveness & Match
+      const matchSuccess = await checkLivenessAndMatch(videoRef.current!, idDesc, setLivenessInstruction);
+
+      // Stop webcam securely
+      stream.getTracks().forEach(track => track.stop());
+
+      if (matchSuccess) {
+         // 4. Update Database on complete success
+         const { data: { user } } = await supabase.auth.getUser();
+         if (user) {
+            const updatePayload: any = {
+              verified: true,
+              cni_number: vRes?.cardNumber || null,
+              cni_dob: vRes?.dob || null,
+              cni_expiry: vRes?.expiry || null,
+              cni_mrz: lines.join('\n')
+            };
+
+            if (profileRole === 'landlord' && !hasAgentId) {
+              const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+              let newAgentId = 'AGN-';
+              for (let i = 0; i < 6; i++) newAgentId += chars.charAt(Math.floor(Math.random() * chars.length));
+              updatePayload.agent_id = newAgentId;
+            }
+
+            await supabase.from('profiles').update(updatePayload).eq('id', user.id);
+         }
+         
+         setPhase('pass');
+         setSuccessMsg(t('verify_pass_sub'));
+         URL.revokeObjectURL(frontImg.preview || '');
+         URL.revokeObjectURL(backImg.preview || '');
+         setTimeout(() => router.push('/dashboard/landlord'), 2500);
+      } else {
+         setErrorMsg(lang === 'fr' ? "Échec de la vérification biométrique. Le visage ne correspond pas." : "Biometric verification failed. Face does not match.");
+         setPhase('fail');
+      }
+    } catch (e) {
+      console.error(e);
+      setErrorMsg(lang === 'fr' ? "Erreur de caméra ou modèles non chargés." : "Camera error or models failed to load.");
+      setPhase('fail');
+    }
+  };
+
   const resetForRetry = () => {
     setFrontImg(p => { if (p.preview) URL.revokeObjectURL(p.preview); return EMPTY_IMG; });
     setBackImg(p => { if (p.preview) URL.revokeObjectURL(p.preview); return EMPTY_IMG; });
-    setMrzLine1(''); setMrzLine2(''); setMrzLine3('');
+    setOcrProgress(0);
     setErrorMsg(''); setPhase('upload');
   };
 
@@ -271,7 +386,7 @@ export default function CniVerificationForm() {
               <strong>{t('verify_tip_title')}</strong> {t('verify_tip_desc')}
             </p>
           </div>
-          <button type="button" disabled={!frontImg.file || !backImg.file} onClick={runQualityCheck} style={{ width: '100%', padding: '0.88rem', background: (frontImg.file && backImg.file) ? 'linear-gradient(135deg,#1a4d3a,#2d7a5a)' : '#d1d5db', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, cursor: (frontImg.file && backImg.file) ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+          <button type="button" disabled={!frontImg.file || !backImg.file} onClick={startExtraction} style={{ width: '100%', padding: '0.88rem', background: (frontImg.file && backImg.file) ? 'linear-gradient(135deg,#1a4d3a,#2d7a5a)' : '#d1d5db', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, cursor: (frontImg.file && backImg.file) ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
             {t('signup_continue')} <ChevronRight size={17} />
           </button>
         </div>
@@ -291,31 +406,23 @@ export default function CniVerificationForm() {
         </div>
       )}
 
-      {/* ── MRZ INPUT ─────────────── */}
-      {phase === 'mrz-input' && (
-        <div className="animate-fade-in-up" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+      {/* ── EXTRACTING ────────────── */}
+      {phase === 'extracting' && (
+        <div className="animate-fade-in-up" style={{ display: 'flex', flexDirection: 'column', gap: 18, alignItems: 'center', textAlign: 'center' }}>
           <div>
-            <h1 style={{ fontWeight: 800, fontSize: '1.25rem', color: '#1c1c1c', marginBottom: 4 }}>{t('verify_mrz_title')}</h1>
-            <p style={{ color: '#888', fontSize: '0.81rem' }}>{t('verify_mrz_sub')}</p>
+            <h1 style={{ fontWeight: 800, fontSize: '1.25rem', color: '#1c1c1c', marginBottom: 4 }}>
+              {lang === 'fr' ? 'Analyse en cours...' : 'Analyzing...'}
+            </h1>
+            <p style={{ color: '#888', fontSize: '0.81rem' }}>
+              {lang === 'fr' ? 'Extraction des données de la pièce...' : 'Extracting data from the ID card...'}
+            </p>
           </div>
           {backImg.preview && <div style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid #e0ddd7' }}><img src={backImg.preview} alt="Verso" style={{ width: '100%', height: 130, objectFit: 'cover' }} /></div>}
-          {errorMsg && <div style={{ background: '#fff5f5', border: '1px solid #fca5a5', borderRadius: 10, padding: '10px 14px', display: 'flex', gap: 8 }}><AlertCircle size={15} color="#b91c1c" /><p style={{ color: '#b91c1c', fontSize: '0.82rem' }}>{errorMsg}</p></div>}
-          {[
-            { label: `${t('verify_mrz_line')} 1`, value: mrzLine1, set: setMrzLine1 },
-            { label: `${t('verify_mrz_line')} 2`, value: mrzLine2, set: setMrzLine2 },
-            { label: `${t('verify_mrz_line')} 3`, value: mrzLine3, set: setMrzLine3 },
-          ].map(item => (
-            <div key={item.label}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
-                <label style={{ fontWeight: 600, fontSize: '0.8rem', color: '#444' }}>{item.label}</label>
-                <span style={{ fontSize: '0.7rem', color: item.value.length === 30 ? '#16a34a' : '#999' }}>{item.value.length}/30</span>
-              </div>
-              <input type="text" value={item.value} maxLength={30} onChange={e => item.set(e.target.value.toUpperCase().replace(/[^A-Z0-9<]/g, ''))} style={{ width: '100%', padding: '10px 12px', fontFamily: 'monospace', fontSize: '0.82rem', background: '#f9f7f4', border: `1.5px solid ${item.value.length === 30 ? '#16a34a' : '#e0ddd7'}`, borderRadius: 8 }} />
-            </div>
-          ))}
-          <button type="button" onClick={submitVerification} style={{ width: '100%', padding: '0.9rem', background: 'linear-gradient(135deg, #1a4d3a, #2d7a5a)', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-            <ShieldCheck size={17} /> {t('verify_btn')}
-          </button>
+          
+          <div style={{ width: '100%', background: '#e0ddd7', borderRadius: 10, height: 8, overflow: 'hidden', marginTop: 10 }}>
+            <div style={{ height: '100%', background: COLORS.green, width: `${ocrProgress}%`, transition: 'width 0.3s ease' }} />
+          </div>
+          <p style={{ fontSize: '0.8rem', color: '#555', fontWeight: 600 }}>{ocrProgress}%</p>
         </div>
       )}
 
@@ -324,6 +431,32 @@ export default function CniVerificationForm() {
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 24, minHeight: 260, textAlign: 'center' }}>
           <div style={{ position: 'relative', width: 72, height: 72 }}><div style={{ width: 72, height: 72, borderRadius: '50%', border: '4px solid #e8f2ee', borderTopColor: COLORS.green, animation: 'spin 0.8s linear infinite' }} /></div>
           <p style={{ fontWeight: 700, fontSize: '1rem', color: '#1c1c1c' }}>{t('verify_checking')}</p>
+        </div>
+      )}
+
+      {/* ── LIVENESS BIOMETRIC ─────────────── */}
+      {phase === 'liveness' && (
+        <div className="animate-fade-in-up" style={{ display: 'flex', flexDirection: 'column', gap: 18, alignItems: 'center', textAlign: 'center' }}>
+          <div>
+            <h1 style={{ fontWeight: 800, fontSize: '1.25rem', color: '#1c1c1c', marginBottom: 4 }}>
+              {lang === 'fr' ? 'Vérification Faciale' : 'Facial Verification'}
+            </h1>
+            <p style={{ color: '#888', fontSize: '0.85rem', fontWeight: 600 }}>
+              {livenessInstruction}
+            </p>
+          </div>
+          <div style={{ borderRadius: 1000, overflow: 'hidden', border: `4px solid ${COLORS.green}`, width: 200, height: 200, position: 'relative' }}>
+            <video 
+              ref={videoRef} 
+              autoPlay 
+              playsInline 
+              muted 
+              style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }} 
+            />
+          </div>
+          <p style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: 10 }}>
+            {lang === 'fr' ? 'Veuillez garder votre visage dans le cadre.' : 'Please keep your face within the frame.'}
+          </p>
         </div>
       )}
 
