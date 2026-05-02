@@ -7,7 +7,8 @@ import { useLang } from '@/lib/lang';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import PropertyCard from '@/components/PropertyCard';
-import { supabase, Property } from '@/lib/supabase';
+import { supabase, type Property as DBProperty } from '@/lib/supabase';
+import { Property } from '@/lib/mockData';
 import { Shield, Wallet, Users, MapPin, BadgeCheck, FileText, ArrowRight, ChevronRight, Star, CheckCircle2 } from 'lucide-react';
 
 export default function HomePage() {
@@ -25,7 +26,28 @@ export default function HomePage() {
         .limit(4);
       
       if (data) {
-        setProperties(data as Property[]);
+        const formatted = (data as DBProperty[]).map(p => ({
+          id: p.id,
+          title: p.title,
+          titleEn: p.title_en ?? p.title,
+          description: p.description ?? '',
+          descriptionEn: p.description_en ?? p.description ?? '',
+          price: p.price,
+          city: p.city,
+          neighborhood: p.neighborhood,
+          rooms: p.bedrooms,
+          bathrooms: p.bathrooms,
+          area: p.area,
+          images: p.images ?? [],
+          landlordId: p.agent_id,
+          verified: p.verified,
+          rating: p.rating,
+          reviewCount: p.review_count,
+          features: p.features ?? [],
+          featuresEn: p.features_en ?? p.features ?? [],
+          coordinates: p.coordinates ?? { lat: 5.3559, lng: -4.007 },
+        }));
+        setProperties(formatted as Property[]);
       }
       setLoading(false);
     }
