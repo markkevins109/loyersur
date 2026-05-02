@@ -46,6 +46,15 @@ export default function LoginForm() {
     setStatus('success');
 
     setTimeout(() => {
+      // Check for redirect url
+      const searchParams = new URLSearchParams(window.location.search);
+      const redirectUrl = searchParams.get('redirect');
+      
+      if (redirectUrl) {
+        router.push(redirectUrl);
+        return;
+      }
+
       if (role === 'landlord') {
         // Unverified landlords must complete ID verification first
         router.push(profile?.verified ? '/dashboard/landlord' : '/auth/verify-cni');
@@ -61,7 +70,7 @@ export default function LoginForm() {
     <div className="animate-fade-in-up">
       {/* Header */}
       <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontWeight: 800, fontSize: '1.6rem', color: '#1c1c1c', marginBottom: '0.35rem', letterSpacing: '-0.5px' }}>
+        <h1 style={{ fontWeight: 800, fontSize: '1.6rem', color: '#0F172A', marginBottom: '0.35rem', letterSpacing: '-0.5px' }}>
           {t('login_title')} 👋
         </h1>
         <p style={{ color: '#888', fontSize: '0.88rem' }}>{t('login_sub')}</p>
@@ -105,7 +114,7 @@ export default function LoginForm() {
               {t('login_password')}
             </label>
             <Link href="/auth/forgot-password" id="forgot-pw-link"
-              style={{ fontSize: '0.78rem', color: '#1a4d3a', textDecoration: 'none', fontWeight: 500 }}>
+              style={{ fontSize: '0.78rem', color: '#0F172A', textDecoration: 'none', fontWeight: 500 }}>
               {t('login_forgot')}
             </Link>
           </div>
@@ -137,7 +146,7 @@ export default function LoginForm() {
           disabled={isLoading}
           style={{
             width: '100%', padding: '0.85rem', marginTop: '0.25rem',
-            background: isLoading ? '#2d6b52' : '#1a4d3a',
+            background: isLoading ? '#2d6b52' : '#0F172A',
             color: '#fff', border: 'none', borderRadius: 8,
             fontWeight: 700, fontSize: '0.95rem', cursor: isLoading ? 'not-allowed' : 'pointer',
             transition: 'all 0.2s', letterSpacing: '-0.2px',
@@ -160,8 +169,8 @@ export default function LoginForm() {
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
           width: '100%', padding: '0.8rem',
-          border: '1.5px solid #1a4d3a', borderRadius: 8,
-          color: '#1a4d3a', fontWeight: 700, fontSize: '0.9rem', textDecoration: 'none',
+          border: '1.5px solid #0F172A', borderRadius: 8,
+          color: '#0F172A', fontWeight: 700, fontSize: '0.9rem', textDecoration: 'none',
           background: '#fff', transition: 'all 0.15s',
         }}
         onMouseEnter={e => { e.currentTarget.style.background = '#e8f2ee'; }}
@@ -175,15 +184,15 @@ export default function LoginForm() {
           flex: 1, background: '#f8f7f4', border: '1px solid #ede9e2', borderRadius: 8,
           padding: '10px', textAlign: 'center', fontSize: '0.78rem', color: '#666',
         }}>
-          🏠 <strong style={{ color: '#1a4d3a', display: 'block', marginTop: 2 }}>Locataire</strong>
-          <span>Trouvez un logement</span>
+          🏠 <strong style={{ color: '#0F172A', display: 'block', marginTop: 2 }}>{lang === 'fr' ? 'Locataire' : 'Tenant'}</strong>
+          <span>{lang === 'fr' ? 'Trouvez un logement' : 'Find a home'}</span>
         </div>
         <div style={{
           flex: 1, background: '#f8f7f4', border: '1px solid #ede9e2', borderRadius: 8,
           padding: '10px', textAlign: 'center', fontSize: '0.78rem', color: '#666',
         }}>
-          🏢 <strong style={{ color: '#c8501e', display: 'block', marginTop: 2 }}>Propriétaire</strong>
-          <span>Publiez vos biens</span>
+          🏢 <strong style={{ color: '#10B981', display: 'block', marginTop: 2 }}>{lang === 'fr' ? 'Propriétaire' : 'Landlord'}</strong>
+          <span>{lang === 'fr' ? 'Publiez vos biens' : 'List your properties'}</span>
         </div>
       </div>
     </div>

@@ -26,7 +26,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       {/* ── LEFT PANEL ─────────────────────────────────────────── */}
       <div style={{
         width: '45%', minHeight: '100vh',
-        background: 'linear-gradient(160deg, #1a4d3a 0%, #0f2e22 60%, #0a1f17 100%)',
+        background: 'linear-gradient(160deg, #0F172A 0%, #0f2e22 60%, #0a1f17 100%)',
         display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
         padding: '2.5rem', position: 'relative', overflow: 'hidden',
       }}
@@ -140,7 +140,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             id="auth-lang-toggle"
             onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')}
             style={{
-              border: '1px solid #e0ddd7', background: '#fff', padding: '5px 12px',
+              border: '1px solid #E2E8F0', background: '#fff', padding: '5px 12px',
               borderRadius: 6, fontWeight: 500, fontSize: '0.8rem', color: '#555', cursor: 'pointer',
             }}>
             {lang === 'fr' ? '🇫🇷 FR' : '🇬🇧 EN'}

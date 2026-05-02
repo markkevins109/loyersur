@@ -13,10 +13,11 @@ export default function SignupForm() {
   const { t, lang } = useLang();
   const router = useRouter();
 
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [showPw, setShowPw] = useState(false);
   const [accountType, setAccountType] = useState<AccountType>('tenant');
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' });
+  const [otp, setOtp] = useState('');
   const [status, setStatus] = useState<Status>('idle');
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -43,27 +44,55 @@ export default function SignupForm() {
     }
 
     // Profile row is auto-created by the handle_new_user DB trigger.
-    // Just wait briefly so the trigger completes before redirecting.
     await new Promise(r => setTimeout(r, 300));
+
+    if (!authData.session) {
+      // Email verification is required. Move to OTP step.
+      setStep(3);
+      setStatus('idle');
+      return;
+    }
 
     setStatus('success');
     setTimeout(() => {
-      // Landlords must complete CNI identity verification before accessing dashboard
+      router.push(accountType === 'tenant' ? '/dashboard/tenant' : '/auth/verify-cni');
+    }, 1200);
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setStatus('loading');
+    setErrorMsg('');
+
+    const { data, error } = await supabase.auth.verifyOtp({
+      email: form.email,
+      token: otp,
+      type: 'signup',
+    });
+
+    if (error) {
+      setStatus('error');
+      setErrorMsg(error.message);
+      return;
+    }
+
+    setStatus('success');
+    setTimeout(() => {
       router.push(accountType === 'tenant' ? '/dashboard/tenant' : '/auth/verify-cni');
     }, 1200);
   };
 
   const isLoading = status === 'loading';
 
-  const TENANT_COLOR = '#1a4d3a';
-  const LANDLORD_COLOR = '#c8501e';
+  const TENANT_COLOR = '#0F172A';
+  const LANDLORD_COLOR = '#10B981';
   const activeColor = accountType === 'tenant' ? TENANT_COLOR : LANDLORD_COLOR;
 
   return (
     <div className="animate-fade-in-up">
       {/* Header */}
       <div style={{ marginBottom: '1.75rem' }}>
-        <h1 style={{ fontWeight: 800, fontSize: '1.6rem', color: '#1c1c1c', marginBottom: '0.35rem', letterSpacing: '-0.5px' }}>
+        <h1 style={{ fontWeight: 800, fontSize: '1.6rem', color: '#0F172A', marginBottom: '0.35rem', letterSpacing: '-0.5px' }}>
           {t('signup_title')} ✨
         </h1>
         <p style={{ color: '#888', fontSize: '0.88rem' }}>{t('signup_sub')}</p>
@@ -85,7 +114,7 @@ export default function SignupForm() {
               style={{
                 display: 'flex', alignItems: 'center', gap: 14,
                 padding: '1rem 1.1rem', borderRadius: 10, cursor: 'pointer',
-                border: `2px solid ${accountType === 'tenant' ? TENANT_COLOR : '#e0ddd7'}`,
+                border: `2px solid ${accountType === 'tenant' ? TENANT_COLOR : '#E2E8F0'}`,
                 background: accountType === 'tenant' ? '#e8f2ee' : '#fff',
                 transition: 'all 0.15s', textAlign: 'left',
               }}>
@@ -120,7 +149,7 @@ export default function SignupForm() {
               style={{
                 display: 'flex', alignItems: 'center', gap: 14,
                 padding: '1rem 1.1rem', borderRadius: 10, cursor: 'pointer',
-                border: `2px solid ${accountType === 'landlord' ? LANDLORD_COLOR : '#e0ddd7'}`,
+                border: `2px solid ${accountType === 'landlord' ? LANDLORD_COLOR : '#E2E8F0'}`,
                 background: accountType === 'landlord' ? '#fdf3ee' : '#fff',
                 transition: 'all 0.15s', textAlign: 'left',
               }}>
@@ -166,7 +195,7 @@ export default function SignupForm() {
           <div style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.84rem', color: '#888' }}>
             {t('signup_has_account')}{' '}
             <Link href="/auth/login" id="goto-login"
-              style={{ color: '#1a4d3a', fontWeight: 700, textDecoration: 'none' }}>
+              style={{ color: '#0F172A', fontWeight: 700, textDecoration: 'none' }}>
               {t('nav_login')} →
             </Link>
           </div>
@@ -216,7 +245,7 @@ export default function SignupForm() {
               padding: '11px 14px', marginBottom: '1rem', fontSize: '0.83rem', color: '#166534',
               display: 'flex', alignItems: 'center', gap: 8,
             }}>
-              ✅ {t('signup_success')}
+              ✅ {errorMsg || t('signup_success')}
             </div>
           )}
 
@@ -245,7 +274,7 @@ export default function SignupForm() {
               </label>
               <div style={{ display: 'flex', gap: 8 }}>
                 <div style={{
-                  background: '#f9f7f4', border: '1px solid #e0ddd7', borderRadius: 6,
+                  background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 6,
                   padding: '10px 12px', fontSize: '0.85rem', color: '#666', flexShrink: 0,
                   display: 'flex', alignItems: 'center', gap: 4,
                 }}>🇨🇮 +225</div>
@@ -296,6 +325,83 @@ export default function SignupForm() {
           <p style={{ textAlign: 'center', fontSize: '0.75rem', color: '#aaa', marginTop: '1.25rem', lineHeight: 1.5 }}>
             {t('signup_terms')}
           </p>
+        </div>
+      )}
+
+      {/* ── STEP 3: OTP Verification ── */}
+      {step === 3 && (
+        <div className="animate-fade-in">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                background: '#e8f2ee',
+                border: `1px solid ${activeColor}30`,
+                borderRadius: 99, padding: '3px 10px', fontSize: '0.75rem',
+                color: activeColor, fontWeight: 600,
+              }}>
+                🛡️ {lang === 'fr' ? 'Vérification Email' : 'Email Verification'}
+              </div>
+            </div>
+          </div>
+
+          <p style={{ fontWeight: 600, fontSize: '0.85rem', color: '#444', marginBottom: '1.2rem', lineHeight: 1.5 }}>
+            {lang === 'fr' 
+              ? `Nous avons envoyé un code à 6 chiffres à l'adresse ${form.email}. Veuillez l'entrer ci-dessous.` 
+              : `We sent a 6-digit code to ${form.email}. Please enter it below.`}
+          </p>
+
+          {/* Error */}
+          {status === 'error' && (
+            <div style={{
+              background: '#fff5f5', border: '1px solid #fca5a5', borderRadius: 10,
+              padding: '11px 14px', marginBottom: '1rem', fontSize: '0.83rem', color: '#b91c1c',
+              display: 'flex', alignItems: 'center', gap: 8,
+            }}>
+              ⚠️ {errorMsg}
+            </div>
+          )}
+
+          {/* Success */}
+          {status === 'success' && (
+            <div style={{
+              background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 10,
+              padding: '11px 14px', marginBottom: '1rem', fontSize: '0.83rem', color: '#166534',
+              display: 'flex', alignItems: 'center', gap: 8,
+            }}>
+              ✅ {errorMsg || t('signup_success')}
+            </div>
+          )}
+
+          <form autoComplete="off" onSubmit={handleVerifyOtp} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div>
+              <label style={{ display: 'block', fontWeight: 600, fontSize: '0.82rem', color: '#444', marginBottom: 5 }}>
+                {lang === 'fr' ? 'Code de vérification (OTP)' : 'Verification Code (OTP)'}
+              </label>
+              <input id="signup-otp" type="text" value={otp} onChange={(e) => setOtp(e.target.value)}
+                placeholder="123456" className="input-field"
+                required disabled={isLoading} maxLength={6} style={{ letterSpacing: '0.2em', fontSize: '1.2rem', textAlign: 'center' }} suppressHydrationWarning />
+            </div>
+
+            <button
+              id="verify-submit"
+              type="submit"
+              disabled={isLoading || status === 'success' || otp.length < 6}
+              style={{
+                width: '100%', padding: '0.85rem', marginTop: '0.5rem',
+                background: isLoading || status === 'success' ? '#2d6b52' : activeColor,
+                color: '#fff', border: 'none', borderRadius: 8,
+                fontWeight: 700, fontSize: '0.95rem',
+                cursor: isLoading || status === 'success' || otp.length < 6 ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s',
+              }}>
+              <span>
+                {isLoading
+                  ? (lang === 'fr' ? 'Vérification...' : 'Verifying...')
+                  : (lang === 'fr' ? 'Vérifier et continuer' : 'Verify & Continue')}
+              </span>
+            </button>
+          </form>
         </div>
       )}
     </div>

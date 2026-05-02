@@ -39,9 +39,9 @@ function ForgotForm() {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               marginBottom: '1rem',
             }}>
-              <Mail size={20} color="#1a4d3a" />
+              <Mail size={20} color="#0F172A" />
             </div>
-            <h1 style={{ fontWeight: 800, fontSize: '1.6rem', color: '#1c1c1c', marginBottom: '0.35rem', letterSpacing: '-0.5px' }}>
+            <h1 style={{ fontWeight: 800, fontSize: '1.6rem', color: '#0F172A', marginBottom: '0.35rem', letterSpacing: '-0.5px' }}>
               {t('forgot_title')}
             </h1>
             <p style={{ color: '#888', fontSize: '0.88rem' }}>{t('forgot_sub')}</p>
@@ -80,7 +80,7 @@ function ForgotForm() {
               disabled={loading}
               style={{
                 width: '100%', padding: '0.85rem',
-                background: loading ? '#2d6b52' : '#1a4d3a',
+                background: loading ? '#2d6b52' : '#0F172A',
                 color: '#fff', border: 'none', borderRadius: 8,
                 fontWeight: 700, fontSize: '0.95rem',
                 cursor: loading ? 'not-allowed' : 'pointer',
@@ -100,16 +100,16 @@ function ForgotForm() {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             margin: '0 auto 1.25rem',
           }}>
-            <CheckCircle2 size={30} color="#1a4d3a" />
+            <CheckCircle2 size={30} color="#0F172A" />
           </div>
-          <h2 style={{ fontWeight: 800, fontSize: '1.3rem', color: '#1c1c1c', marginBottom: '0.5rem' }}>
+          <h2 style={{ fontWeight: 800, fontSize: '1.3rem', color: '#0F172A', marginBottom: '0.5rem' }}>
             {lang === 'fr' ? 'Email envoyé !' : 'Email sent!'}
           </h2>
           <p style={{ color: '#888', fontSize: '0.86rem', lineHeight: 1.6, marginBottom: '1.5rem' }}>
             {lang === 'fr'
               ? `Un lien de réinitialisation a été envoyé à `
               : `A reset link has been sent to `}
-            <strong style={{ color: '#1c1c1c' }}>{email}</strong>
+            <strong style={{ color: '#0F172A' }}>{email}</strong>
           </p>
           <div style={{
             background: '#f8f7f4', border: '1px solid #ede9e2', borderRadius: 10,

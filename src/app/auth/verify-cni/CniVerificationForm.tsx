@@ -40,7 +40,7 @@ interface ImageState {
 const EMPTY_IMG: ImageState = { file: null, preview: null, width: 0, height: 0 };
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const COLORS = { green: '#1a4d3a', orange: '#c8501e', bg: '#f9f7f4', card: '#ffffff' };
+const COLORS = { green: '#0F172A', orange: '#10B981', bg: '#F8FAFC', card: '#ffffff' };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function checkImageQuality(img: ImageState, minW = 600, minH = 400): boolean {
@@ -335,10 +335,10 @@ export default function CniVerificationForm() {
       {phase === 'consent' && (
         <div className="animate-fade-in-up" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 64, height: 64, borderRadius: '50%', background: 'linear-gradient(135deg, #1a4d3a, #2d7a5a)', marginBottom: 14 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 64, height: 64, borderRadius: '50%', background: 'linear-gradient(135deg, #0F172A, #2d7a5a)', marginBottom: 14 }}>
               <ShieldCheck size={30} color="#fff" />
             </div>
-            <h1 style={{ fontWeight: 800, fontSize: '1.45rem', color: '#1c1c1c', letterSpacing: '-0.5px', marginBottom: 6 }}>{t('verify_title')}</h1>
+            <h1 style={{ fontWeight: 800, fontSize: '1.45rem', color: '#0F172A', letterSpacing: '-0.5px', marginBottom: 6 }}>{t('verify_title')}</h1>
             <p style={{ color: '#888', fontSize: '0.85rem', lineHeight: 1.55 }}>{t('verify_sub')}</p>
           </div>
 
@@ -363,7 +363,7 @@ export default function CniVerificationForm() {
             ))}
           </div>
 
-          <button type="button" onClick={() => setPhase('upload')} style={{ width: '100%', padding: '0.9rem', background: 'linear-gradient(135deg, #1a4d3a, #2d7a5a)', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+          <button type="button" onClick={() => setPhase('upload')} style={{ width: '100%', padding: '0.9rem', background: 'linear-gradient(135deg, #0F172A, #2d7a5a)', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
             {t('verify_accept')} <ChevronRight size={17} />
           </button>
         </div>
@@ -373,7 +373,7 @@ export default function CniVerificationForm() {
       {phase === 'upload' && (
         <div className="animate-fade-in-up" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div>
-            <h1 style={{ fontWeight: 800, fontSize: '1.3rem', color: '#1c1c1c', marginBottom: 4 }}>{t('verify_upload_title')}</h1>
+            <h1 style={{ fontWeight: 800, fontSize: '1.3rem', color: '#0F172A', marginBottom: 4 }}>{t('verify_upload_title')}</h1>
             <p style={{ color: '#888', fontSize: '0.82rem' }}>{t('verify_upload_sub')}</p>
           </div>
           <div style={{ display: 'flex', gap: 12 }}>
@@ -386,7 +386,7 @@ export default function CniVerificationForm() {
               <strong>{t('verify_tip_title')}</strong> {t('verify_tip_desc')}
             </p>
           </div>
-          <button type="button" disabled={!frontImg.file || !backImg.file} onClick={startExtraction} style={{ width: '100%', padding: '0.88rem', background: (frontImg.file && backImg.file) ? 'linear-gradient(135deg,#1a4d3a,#2d7a5a)' : '#d1d5db', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, cursor: (frontImg.file && backImg.file) ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+          <button type="button" disabled={!frontImg.file || !backImg.file} onClick={startExtraction} style={{ width: '100%', padding: '0.88rem', background: (frontImg.file && backImg.file) ? 'linear-gradient(135deg,#0F172A,#2d7a5a)' : '#d1d5db', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, cursor: (frontImg.file && backImg.file) ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
             {t('signup_continue')} <ChevronRight size={17} />
           </button>
         </div>
@@ -396,7 +396,7 @@ export default function CniVerificationForm() {
       {phase === 'retry' && (
         <div className="animate-fade-in-up" style={{ display: 'flex', flexDirection: 'column', gap: 20, alignItems: 'center', textAlign: 'center' }}>
           <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><AlertCircle size={30} color="#d97706" /></div>
-          <h1 style={{ fontWeight: 800, fontSize: '1.2rem', color: '#1c1c1c' }}>{t('verify_check_quality')}</h1>
+          <h1 style={{ fontWeight: 800, fontSize: '1.2rem', color: '#0F172A' }}>{t('verify_check_quality')}</h1>
           <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 12, padding: '1rem 1.2rem', width: '100%', textAlign: 'left' }}>
             <p style={{ color: '#92400e', fontSize: '0.85rem', lineHeight: 1.6 }}>{t('verify_check_quality_desc')}</p>
           </div>
@@ -410,16 +410,16 @@ export default function CniVerificationForm() {
       {phase === 'extracting' && (
         <div className="animate-fade-in-up" style={{ display: 'flex', flexDirection: 'column', gap: 18, alignItems: 'center', textAlign: 'center' }}>
           <div>
-            <h1 style={{ fontWeight: 800, fontSize: '1.25rem', color: '#1c1c1c', marginBottom: 4 }}>
+            <h1 style={{ fontWeight: 800, fontSize: '1.25rem', color: '#0F172A', marginBottom: 4 }}>
               {lang === 'fr' ? 'Analyse en cours...' : 'Analyzing...'}
             </h1>
             <p style={{ color: '#888', fontSize: '0.81rem' }}>
               {lang === 'fr' ? 'Extraction des données de la pièce...' : 'Extracting data from the ID card...'}
             </p>
           </div>
-          {backImg.preview && <div style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid #e0ddd7' }}><img src={backImg.preview} alt="Verso" style={{ width: '100%', height: 130, objectFit: 'cover' }} /></div>}
+          {backImg.preview && <div style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid #E2E8F0' }}><img src={backImg.preview} alt="Verso" style={{ width: '100%', height: 130, objectFit: 'cover' }} /></div>}
           
-          <div style={{ width: '100%', background: '#e0ddd7', borderRadius: 10, height: 8, overflow: 'hidden', marginTop: 10 }}>
+          <div style={{ width: '100%', background: '#E2E8F0', borderRadius: 10, height: 8, overflow: 'hidden', marginTop: 10 }}>
             <div style={{ height: '100%', background: COLORS.green, width: `${ocrProgress}%`, transition: 'width 0.3s ease' }} />
           </div>
           <p style={{ fontSize: '0.8rem', color: '#555', fontWeight: 600 }}>{ocrProgress}%</p>
@@ -430,7 +430,7 @@ export default function CniVerificationForm() {
       {phase === 'checking' && (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 24, minHeight: 260, textAlign: 'center' }}>
           <div style={{ position: 'relative', width: 72, height: 72 }}><div style={{ width: 72, height: 72, borderRadius: '50%', border: '4px solid #e8f2ee', borderTopColor: COLORS.green, animation: 'spin 0.8s linear infinite' }} /></div>
-          <p style={{ fontWeight: 700, fontSize: '1rem', color: '#1c1c1c' }}>{t('verify_checking')}</p>
+          <p style={{ fontWeight: 700, fontSize: '1rem', color: '#0F172A' }}>{t('verify_checking')}</p>
         </div>
       )}
 
@@ -438,7 +438,7 @@ export default function CniVerificationForm() {
       {phase === 'liveness' && (
         <div className="animate-fade-in-up" style={{ display: 'flex', flexDirection: 'column', gap: 18, alignItems: 'center', textAlign: 'center' }}>
           <div>
-            <h1 style={{ fontWeight: 800, fontSize: '1.25rem', color: '#1c1c1c', marginBottom: 4 }}>
+            <h1 style={{ fontWeight: 800, fontSize: '1.25rem', color: '#0F172A', marginBottom: 4 }}>
               {lang === 'fr' ? 'Vérification Faciale' : 'Facial Verification'}
             </h1>
             <p style={{ color: '#888', fontSize: '0.85rem', fontWeight: 600 }}>

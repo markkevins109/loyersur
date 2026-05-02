@@ -1,69 +1,107 @@
 @import "tailwindcss";
 
 @theme {
-  --font-display: 'Outfit', sans-serif;
-  --font-sans: 'Inter', sans-serif;
-  
-  /* High Contrast Color Palette */
-  --color-primary: #1a4d3a;      /* Deep Forest Green */
-  --color-primary-dark: #0f2e23;
-  --color-accent: #c8501e;       /* Rich Burnt Orange */
-  --color-accent-soft: #fdf2ed;
-  --color-bg-cream: #f8f6f2;     /* Warm Neutral Background */
-  --color-text-main: #111827;    /* Near Black for readability */
-  --color-text-muted: #4b5563;   /* Slate Gray */
-  --color-border-soft: #e5e7eb;
+  --font-sans: var(--font-sans);
+  --font-display: var(--font-display);
+  --color-primary: #0F172A;      /* Midnight Slate */
+  --color-primary-dark: #020617;
+  --color-accent: #10B981;       /* Vibrant Emerald */
+  --color-accent-soft: #D1FAE5;
+  --color-accent-dark: #059669;
+  --color-bg-cream: #F8FAFC;     /* Ultra clean slate-white */
+  --color-text-main: #0F172A;    /* Slate 900 */
+  --color-text-muted: #475569;   /* Slate 600 */
+  --color-border-soft: #E2E8F0;  /* Slate 200 */
+  --color-surface: #FFFFFF;
 }
 
 @layer base {
   body {
-    @apply bg-white text-text-main font-sans antialiased;
+    @apply bg-bg-cream text-text-main font-sans antialiased selection:bg-accent selection:text-white;
   }
-  h1, h2, h3, h4, .font-display {
-    @apply font-display tracking-tight;
+  h1, h2, h3, h4, h5, h6, .font-display {
+    font-family: var(--font-display);
+    @apply tracking-tight text-text-main;
+  }
+  
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
   }
 }
 
 @layer components {
-  /* High Visibility Buttons */
+  /* Premium Buttons */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white font-black rounded-xl 
-           hover:bg-primary-dark hover:scale-[1.02] active:scale-95 transition-all shadow-md shadow-primary/10;
+    @apply inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-primary text-white font-bold rounded-2xl 
+           hover:bg-primary-dark hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 shadow-[0_8px_20px_-6px_rgba(15,23,42,0.4)];
   }
   
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-primary border-2 border-primary font-black rounded-xl 
-           hover:bg-bg-cream transition-all;
+    @apply inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-surface text-primary border border-border-soft font-bold rounded-2xl 
+           hover:border-primary hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300;
   }
 
-  /* Clear, Readable Cards */
+  /* Glassmorphism & Premium Cards */
   .premium-card {
-    @apply bg-white border border-border-soft rounded-[1.5rem] p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300;
+    @apply bg-surface/80 backdrop-blur-xl border border-white/50 rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] 
+           hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-500 relative overflow-hidden;
   }
 
   .listing-card {
-    @apply bg-white border border-border-soft rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500;
+    @apply bg-surface border border-border-soft rounded-3xl overflow-hidden shadow-sm 
+           hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] hover:-translate-y-2 transition-all duration-500 cursor-pointer relative;
   }
 
   /* Status Badges */
   .premium-badge {
-    @apply inline-flex items-center gap-1.5 px-3 py-1 bg-accent/10 text-accent text-[10px] font-black uppercase tracking-widest rounded-full border border-accent/20;
+    @apply inline-flex items-center gap-1.5 px-3 py-1 bg-accent/10 text-accent-dark text-[10px] font-black uppercase tracking-widest rounded-full border border-accent/20 backdrop-blur-sm;
   }
 
   /* Input Fields */
   .premium-input {
-    @apply w-full bg-white border-2 border-border-soft rounded-xl px-4 py-3 text-text-main font-medium 
-           focus:border-primary focus:outline-none transition-all;
+    @apply w-full bg-surface/50 border border-border-soft rounded-2xl px-5 py-4 text-text-main font-medium 
+           focus:bg-surface focus:border-accent focus:ring-4 focus:ring-accent/10 outline-none transition-all duration-300 placeholder:text-text-muted/60;
   }
 }
 
-/* Utils */
+/* Animations & Utilities */
 @keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(0.98); }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 .animate-float {
-  animation: float 4s ease-in-out infinite;
+  animation: float 5s ease-in-out infinite;
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 8s ease infinite;
+}
+
+.glass-panel {
+  @apply bg-white/70 backdrop-blur-lg border border-white shadow-xl;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-bg-cream;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-text-muted/30 rounded-full hover:bg-text-muted/50 transition-colors;
 }

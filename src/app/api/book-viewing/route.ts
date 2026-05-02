@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import nodemailer from 'nodemailer';
 
 // Server-side Supabase client with service role key for DB writes
 function getServiceClient() {
@@ -82,7 +83,7 @@ export async function POST(req: Request) {
 
     const { data: property, error: propError } = await serviceClient
       .from('properties')
-      .select('id, agent_id')
+      .select('id, agent_id, title, title_en, neighborhood')
       .eq('id', property_id)
       .single();
 
@@ -94,12 +95,9 @@ export async function POST(req: Request) {
     }
 
     // 4. Resolve the landlord's UUID from profiles.agent_id (TEXT → UUID)
-    //    properties.agent_id is TEXT (e.g. "sree0327")
-    //    bookings.agent_id is UUID (FK to profiles.id)
-    //    So we must look up the profile to get the UUID
     const { data: agentProfile, error: agentError } = await serviceClient
       .from('profiles')
-      .select('id')
+      .select('id, email, full_name')
       .eq('agent_id', property.agent_id)
       .single();
 
@@ -120,7 +118,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 6. Check for duplicate pending bookings (same tenant + property + date)
+    // 6. Check for duplicate pending bookings
     const { data: existingBooking } = await serviceClient
       .from('bookings')
       .select('id')
@@ -137,7 +135,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 7. Insert the booking (agent_id must be UUID, not the TEXT code)
+    // 7. Insert the booking
     const { data: booking, error: insertError } = await serviceClient
       .from('bookings')
       .insert({
@@ -159,7 +157,109 @@ export async function POST(req: Request) {
       );
     }
 
-    // 8. Return success (email notification will be added later)
+    // 8. Send Email Notifications
+    const tenantEmail = user.email;
+    const tenantName = user.user_metadata?.full_name || 'Tenant';
+    const landlordEmail = agentProfile.email;
+    const landlordName = agentProfile.full_name || 'Landlord';
+    const propTitle = property.title || 'Property';
+    const propLocation = property.neighborhood || 'Unknown Location';
+    const displayDate = new Date(preferred_date).toLocaleString('en-US', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
+
+    const tenantEmailHtml = `
+      <div style="font-family: sans-serif; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #eaeaea; border-radius: 12px; overflow: hidden;">
+        <div style="background-color: #0F172A; padding: 30px; text-align: center;">
+          <h2 style="color: #fff; margin: 0;">LoyerSûr CI</h2>
+        </div>
+        <div style="padding: 30px;">
+          <p style="font-size: 16px;">Hello <strong>${tenantName}</strong>,</p>
+          <p style="font-size: 16px;">Your viewing request has been successfully submitted!</p>
+          
+          <div style="background-color: #f8fafc; border-left: 4px solid #10B981; padding: 15px; margin: 25px 0; border-radius: 4px;">
+            <p style="margin: 0 0 10px 0; font-weight: bold;">Property: <span style="font-weight: normal;">${propTitle} (${propLocation})</span></p>
+            <p style="margin: 0 0 10px 0; font-weight: bold;">Date & Time: <span style="font-weight: normal;">${displayDate}</span></p>
+            <p style="margin: 0; font-weight: bold;">Landlord: <span style="font-weight: normal;">${landlordName}</span></p>
+          </div>
+          
+          <p style="font-size: 16px;">The landlord will review your request shortly. You can check the status on your <a href="https://loyersur.ci/dashboard/tenant" style="color: #10B981;">dashboard</a>.</p>
+          <br/>
+          <p style="font-size: 14px; color: #888;">Thank you for using LoyerSûr CI!</p>
+        </div>
+      </div>
+    `;
+
+    const landlordEmailHtml = `
+      <div style="font-family: sans-serif; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #eaeaea; border-radius: 12px; overflow: hidden;">
+        <div style="background-color: #10B981; padding: 30px; text-align: center;">
+          <h2 style="color: #fff; margin: 0;">LoyerSûr CI - New Request!</h2>
+        </div>
+        <div style="padding: 30px;">
+          <p style="font-size: 16px;">Hello <strong>${landlordName}</strong>,</p>
+          <p style="font-size: 16px;">You have a new viewing request for your property!</p>
+          
+          <div style="background-color: #f8fafc; border-left: 4px solid #0F172A; padding: 15px; margin: 25px 0; border-radius: 4px;">
+            <p style="margin: 0 0 10px 0; font-weight: bold;">Property: <span style="font-weight: normal;">${propTitle} (${propLocation})</span></p>
+            <p style="margin: 0 0 10px 0; font-weight: bold;">Requested by: <span style="font-weight: normal;">${tenantName}</span></p>
+            <p style="margin: 0 0 10px 0; font-weight: bold;">Date & Time: <span style="font-weight: normal;">${displayDate}</span></p>
+            ${message ? `<p style="margin: 0; font-weight: bold;">Message: <span style="font-weight: normal; font-style: italic;">"${message}"</span></p>` : ''}
+          </div>
+          
+          <p style="font-size: 16px;">Please log in to your <a href="https://loyersur.ci/dashboard/landlord" style="color: #10B981;">dashboard</a> to accept or decline this request.</p>
+          <br/>
+          <p style="font-size: 14px; color: #888;">Thank you for using LoyerSûr CI!</p>
+        </div>
+      </div>
+    `;
+
+    const smtpHost = process.env.SMTP_HOST;
+    const smtpPort = process.env.SMTP_PORT;
+    const smtpUser = process.env.SMTP_USER;
+    const smtpPass = process.env.SMTP_PASS;
+    const smtpFrom = process.env.SMTP_FROM || 'LoyerSûr CI <noreply@loyersur.ci>';
+
+    if (smtpHost && smtpPort && smtpUser && smtpPass) {
+      const transporter = nodemailer.createTransport({
+        host: smtpHost,
+        port: parseInt(smtpPort),
+        secure: parseInt(smtpPort) === 465, // true for 465, false for other ports
+        auth: {
+          user: smtpUser,
+          pass: smtpPass,
+        },
+      });
+
+      try {
+        // Send to Tenant
+        await transporter.sendMail({
+          from: smtpFrom,
+          to: tenantEmail!,
+          subject: `Viewing Request Confirmed: ${propTitle}`,
+          html: tenantEmailHtml,
+        });
+
+        // Send to Landlord
+        if (landlordEmail) {
+          await transporter.sendMail({
+            from: smtpFrom,
+            to: landlordEmail,
+            subject: `New Viewing Request from ${tenantName}`,
+            html: landlordEmailHtml,
+          });
+        }
+      } catch (emailError) {
+        console.error('Failed to send SMTP emails:', emailError);
+      }
+    } else {
+      console.log('--- SMTP credentials not fully set. Mocking email send ---');
+      console.log(`[Email to Tenant] To: ${tenantEmail} | Subject: Viewing Request Confirmed`);
+      console.log(`[Email to Landlord] To: ${landlordEmail} | Subject: New Viewing Request`);
+      console.log('------------------------------------------------------');
+    }
+
+    // 9. Return success
     return NextResponse.json({
       success: true,
       bookingId: booking.id,

@@ -63,8 +63,8 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all border-b ${
-        scrolled ? 'bg-white/95 backdrop-blur-md border-border-soft py-3 shadow-sm' : 'bg-white border-transparent py-5'
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${
+        scrolled ? 'bg-surface/80 backdrop-blur-xl border-border-soft py-4 shadow-sm' : 'bg-transparent border-transparent py-6'
       }`}
     >
       <div className="container px-6 mx-auto flex items-center justify-between">
@@ -72,13 +72,13 @@ export default function Navbar() {
         <Link 
           href="/" 
           id="navbar-logo" 
-          className="flex items-center gap-2 group transition-transform active:scale-95"
+          className="flex items-center gap-2.5 group transition-transform active:scale-95"
         >
-          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary text-white shadow-lg shadow-primary/20 group-hover:rotate-6 transition-transform">
+          <div className="flex items-center justify-center w-11 h-11 rounded-2xl bg-primary text-white shadow-lg shadow-primary/20 group-hover:-rotate-3 transition-transform duration-300">
             <Home size={22} strokeWidth={2.5} />
           </div>
-          <span className="font-display font-black text-xl tracking-tight text-primary">
-            LoyerSûr <span className="text-accent">CI</span>
+          <span className="font-display font-extrabold text-2xl tracking-tight text-primary">
+            LoyerSûr <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-accent-dark">CI</span>
           </span>
         </Link>
 
@@ -89,25 +89,24 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-sm font-black text-text-main hover:text-primary transition-colors relative group"
+                className="text-sm font-bold text-text-main hover:text-accent transition-colors relative group"
               >
                 {link.label}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-accent transition-all duration-300 group-hover:w-full" />
+                <span className="absolute -bottom-1.5 left-0 w-0 h-[2px] bg-accent transition-all duration-300 group-hover:w-full" />
               </Link>
             ))}
           </div>
 
           <div className="h-6 w-px bg-border-soft" />
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-5">
             {/* Language toggle */}
             <button
               id="lang-toggle"
               onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg border-2 border-border-soft text-xs font-black text-text-main hover:bg-white hover:border-primary hover:text-primary transition-all"
+              className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border-soft text-xs font-bold text-text-main hover:bg-surface hover:border-accent hover:text-accent hover:shadow-md transition-all duration-300"
             >
-              <Globe size={14} />
-              {lang === 'fr' ? 'FR' : 'EN'}
+              {lang === 'fr' ? '🇨🇮 FR' : '🇬🇧 EN'}
             </button>
 
             {loadingAuth ? (
@@ -116,13 +115,13 @@ export default function Navbar() {
               <>
                 <Link 
                   href={role === 'tenant' ? '/dashboard/tenant' : '/dashboard/landlord'} 
-                  className="flex items-center gap-2 text-sm font-black text-text-main hover:text-primary transition-colors"
+                  className="flex items-center gap-2 text-sm font-bold text-text-main hover:text-accent transition-colors"
                 >
                   {lang === 'fr' ? 'Tableau de bord' : 'Dashboard'}
                 </Link>
                 <button 
                   onClick={handleLogout} 
-                  className="btn-primary py-2 px-5 text-sm !bg-red-600 hover:!bg-red-700 !shadow-red-600/20"
+                  className="btn-primary py-2.5 px-6 text-sm !bg-red-500 hover:!bg-red-600 !shadow-[0_4px_15px_-3px_rgba(239,68,68,0.4)] !rounded-xl"
                 >
                   {lang === 'fr' ? 'Déconnexion' : 'Log out'}
                 </button>
@@ -131,13 +130,13 @@ export default function Navbar() {
               <>
                 <Link 
                   href="/auth/login" 
-                  className="flex items-center gap-2 text-sm font-black text-text-main hover:text-primary transition-colors"
+                  className="flex items-center gap-2 text-sm font-bold text-text-main hover:text-accent transition-colors"
                 >
-                  <LogIn size={16} />
+                  <LogIn size={18} />
                   {t('nav_login')}
                 </Link>
 
-                <Link href="/auth/signup" className="btn-primary py-2 px-5 text-sm">
+                <Link href="/auth/signup" className="btn-primary py-2.5 px-6 text-sm !rounded-xl">
                   {t('nav_signup')}
                 </Link>
               </>
@@ -149,13 +148,13 @@ export default function Navbar() {
         <div className="flex lg:hidden items-center gap-3">
           <button
             onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')}
-            className="w-10 h-10 flex items-center justify-center rounded-xl border border-border-soft bg-white/50"
+            className="w-10 h-10 flex items-center justify-center rounded-xl border border-border-soft bg-surface/80 backdrop-blur-sm"
           >
-            {lang === 'fr' ? '🇫🇷' : '🇬🇧'}
+            {lang === 'fr' ? '🇨🇮' : '🇬🇧'}
           </button>
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="w-10 h-10 flex items-center justify-center rounded-xl bg-primary text-white"
+            className="w-10 h-10 flex items-center justify-center rounded-xl bg-primary text-white shadow-md shadow-primary/20"
           >
             {menuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
@@ -169,7 +168,7 @@ export default function Navbar() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="lg:hidden bg-white border-t border-border-soft overflow-hidden"
+            className="lg:hidden bg-surface/95 backdrop-blur-2xl border-t border-border-soft overflow-hidden shadow-2xl"
           >
             <div className="container px-6 py-8 flex flex-col gap-4">
               {navLinks.map((link) => (
@@ -177,7 +176,7 @@ export default function Navbar() {
                   key={link.href}
                   href={link.href}
                   onClick={() => setMenuOpen(false)}
-                  className="text-lg font-black text-text-main p-2 hover:bg-bg-cream rounded-xl transition-colors"
+                  className="text-lg font-bold text-text-main p-3 hover:bg-bg-cream rounded-xl transition-colors"
                 >
                   {link.label}
                 </Link>
@@ -188,13 +187,13 @@ export default function Navbar() {
                   <Link
                     href={role === 'tenant' ? '/dashboard/tenant' : '/dashboard/landlord'}
                     onClick={() => setMenuOpen(false)}
-                    className="flex items-center gap-2 text-lg font-black text-text-main p-2"
+                    className="flex items-center gap-2 text-lg font-bold text-text-main p-3 hover:bg-bg-cream rounded-xl transition-colors"
                   >
                     {lang === 'fr' ? 'Tableau de bord' : 'Dashboard'}
                   </Link>
                   <button
                     onClick={() => { setMenuOpen(false); handleLogout(); }}
-                    className="btn-primary w-full py-4 text-lg mt-2 !bg-red-600"
+                    className="btn-primary w-full py-4 text-lg mt-4 !bg-red-500 hover:!bg-red-600 shadow-[0_4px_15px_-3px_rgba(239,68,68,0.4)]"
                   >
                     {lang === 'fr' ? 'Déconnexion' : 'Log out'}
                   </button>
@@ -204,15 +203,15 @@ export default function Navbar() {
                   <Link
                     href="/auth/login"
                     onClick={() => setMenuOpen(false)}
-                    className="flex items-center gap-2 text-lg font-black text-text-main p-2"
+                    className="flex items-center gap-3 text-lg font-bold text-text-main p-3 hover:bg-bg-cream rounded-xl transition-colors"
                   >
-                    <LogIn size={20} />
+                    <LogIn size={20} className="text-text-muted" />
                     {t('nav_login')}
                   </Link>
                   <Link
                     href="/auth/signup"
                     onClick={() => setMenuOpen(false)}
-                    className="btn-primary w-full py-4 text-lg mt-2"
+                    className="btn-primary w-full py-4 text-lg mt-4 shadow-lg shadow-primary/20"
                   >
                     {t('nav_signup')}
                   </Link>

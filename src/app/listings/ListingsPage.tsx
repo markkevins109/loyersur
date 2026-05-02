@@ -89,40 +89,44 @@ export default function ListingsPage() {
   const hasFilters = search || filterNeighborhood || filterMaxPrice || filterRooms || filterVerified;
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-bg-cream selection:bg-accent selection:text-white">
       <Navbar />
 
-      {/* Solid Search Header */}
-      <section className="pt-32 pb-16 bg-primary">
-        <div className="container px-6 mx-auto">
+      {/* Premium Search Header */}
+      <section className="relative pt-36 pb-20 bg-primary border-b border-white/10 overflow-hidden">
+        {/* Background glow elements */}
+        <div className="absolute inset-0 bg-[url('/noise.png')] opacity-10 mix-blend-overlay"></div>
+        <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-accent/10 rounded-full blur-[100px] pointer-events-none"></div>
+
+        <div className="container relative z-10 px-6 mx-auto">
           <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-black text-white mb-4">
+            <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4 tracking-tight">
               {t('listings_title')}
             </h1>
-            <p className="text-emerald-100 font-medium text-lg mb-10">
+            <p className="text-white/70 font-medium text-lg mb-12">
               {usingMock
                 ? (lang === 'fr' ? 'Annonces de démonstration — connectez Supabase pour voir les vraies annonces' : 'Demo listings — connect Supabase to see real listings')
                 : t('listings_sub')}
             </p>
 
             {/* Search Bar */}
-            <div className="relative max-w-2xl mx-auto flex gap-3 p-3 bg-white rounded-2xl shadow-xl">
+            <div className="relative max-w-2xl mx-auto flex gap-3 p-3 bg-surface/10 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20">
               <div className="relative flex-1">
-                <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" />
+                <Search size={22} className="absolute left-5 top-1/2 -translate-y-1/2 text-white/50" />
                 <input
                   id="listings-search"
                   type="text"
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   placeholder={lang === 'fr' ? 'Quartier, titre, mot-clé...' : 'Neighborhood, title, keyword...'}
-                  className="w-full bg-bg-cream text-text-main placeholder:text-text-muted border-none rounded-xl py-3 pl-12 pr-4 outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold"
+                  className="w-full bg-surface text-text-main placeholder:text-text-muted border-none rounded-2xl py-4 pl-14 pr-4 outline-none focus:ring-4 focus:ring-accent/20 transition-all font-bold shadow-inner"
                 />
               </div>
               <button
                 id="toggle-filters"
                 onClick={() => setShowFilters(!showFilters)}
-                className={`flex items-center gap-2 px-6 rounded-xl font-black text-sm transition-all border-2 ${
-                  showFilters ? 'bg-accent border-accent text-white' : 'bg-white border-primary/10 text-primary hover:border-primary'
+                className={`flex items-center gap-2 px-6 rounded-2xl font-bold text-sm transition-all duration-300 border ${
+                  showFilters ? 'bg-accent border-accent text-white shadow-[0_0_20px_rgba(16,185,129,0.3)]' : 'bg-surface border-transparent text-primary hover:bg-bg-cream shadow-md'
                 }`}
               >
                 <SlidersHorizontal size={18} />
@@ -133,38 +137,41 @@ export default function ListingsPage() {
         </div>
       </section>
 
-      <div className="container px-6 mx-auto py-12">
+      <div className="container px-6 mx-auto py-16">
         {/* Filter Panel */}
         <AnimatePresence>
           {showFilters && (
             <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="mb-12"
+              initial={{ opacity: 0, height: 0, y: -20 }}
+              animate={{ opacity: 1, height: 'auto', y: 0 }}
+              exit={{ opacity: 0, height: 0, y: -20 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+              className="mb-14 overflow-hidden"
             >
-              <div className="bg-white border-2 border-border-soft rounded-[2rem] p-8 shadow-xl">
-                <div className="flex items-center justify-between mb-8 pb-4 border-b-2 border-border-soft">
-                  <h3 className="font-black text-xl flex items-center gap-2 text-text-main">
-                    <SlidersHorizontal size={20} className="text-primary" />
+              <div className="bg-surface border border-border-soft rounded-[2rem] p-8 shadow-[0_20px_50px_rgba(15,23,42,0.05)] relative">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-bl-full pointer-events-none"></div>
+
+                <div className="flex items-center justify-between mb-8 pb-5 border-b border-border-soft">
+                  <h3 className="font-extrabold text-xl flex items-center gap-2 text-text-main">
+                    <SlidersHorizontal size={20} className="text-accent" />
                     {lang === 'fr' ? 'Affiner la recherche' : 'Refine search'}
                   </h3>
                   {hasFilters && (
-                    <button onClick={resetFilters} className="text-accent text-sm font-black hover:underline flex items-center gap-1">
-                      <X size={14} /> {t('filter_reset')}
+                    <button onClick={resetFilters} className="text-accent text-sm font-bold hover:underline flex items-center gap-1.5 transition-colors">
+                      <X size={16} /> {t('filter_reset')}
                     </button>
                   )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                   <div className="space-y-3">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-text-muted flex items-center gap-2">
-                      <MapPin size={14} className="text-primary" /> {t('filter_neighborhood')}
+                    <label className="text-[11px] font-bold uppercase tracking-[0.15em] text-text-muted flex items-center gap-2">
+                      <MapPin size={16} className="text-accent" /> {t('filter_neighborhood')}
                     </label>
                     <select
                       value={filterNeighborhood}
                       onChange={e => setFilterNeighborhood(e.target.value)}
-                      className="w-full bg-bg-cream border-2 border-border-soft rounded-xl px-4 py-3 text-text-main font-black focus:border-primary outline-none transition-all"
+                      className="premium-input"
                     >
                       <option value="">{t('filter_all')}</option>
                       {neighborhoods.map(o => <option key={o} value={o}>{o}</option>)}
@@ -172,10 +179,10 @@ export default function ListingsPage() {
                   </div>
 
                   <div className="space-y-3">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-text-muted flex items-center gap-2">
-                      <Wallet2 size={14} className="text-primary" /> {t('filter_price')}
+                    <label className="text-[11px] font-bold uppercase tracking-[0.15em] text-text-muted flex items-center gap-2">
+                      <Wallet2 size={16} className="text-accent" /> {t('filter_price')}
                     </label>
-                    <select value={filterMaxPrice} onChange={e => setFilterMaxPrice(e.target.value)} className="w-full bg-bg-cream border-2 border-border-soft rounded-xl px-4 py-3 text-text-main font-black focus:border-primary outline-none transition-all">
+                    <select value={filterMaxPrice} onChange={e => setFilterMaxPrice(e.target.value)} className="premium-input">
                       <option value="">{t('any_price')}</option>
                       <option value="100000">≤ 100 000 FCFA</option>
                       <option value="200000">≤ 200 000 FCFA</option>
@@ -185,28 +192,28 @@ export default function ListingsPage() {
                   </div>
 
                   <div className="space-y-3">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-text-muted flex items-center gap-2">
-                      <LayoutGrid size={14} className="text-primary" /> {t('filter_rooms')}
+                    <label className="text-[11px] font-bold uppercase tracking-[0.15em] text-text-muted flex items-center gap-2">
+                      <LayoutGrid size={16} className="text-accent" /> {t('filter_rooms')}
                     </label>
-                    <select value={filterRooms} onChange={e => setFilterRooms(e.target.value)} className="w-full bg-bg-cream border-2 border-border-soft rounded-xl px-4 py-3 text-text-main font-black focus:border-primary outline-none transition-all">
+                    <select value={filterRooms} onChange={e => setFilterRooms(e.target.value)} className="premium-input">
                       <option value="">{t('any_rooms')}</option>
                       {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}+ {t('rooms')}</option>)}
                     </select>
                   </div>
 
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-text-muted flex items-center gap-2">
-                      <Building2 size={14} className="text-primary" /> {t('filter_verified')}
+                  <div className="space-y-3 flex flex-col justify-end">
+                    <label className="text-[11px] font-bold uppercase tracking-[0.15em] text-text-muted flex items-center gap-2 mb-3">
+                      <Building2 size={16} className="text-accent" /> {t('filter_verified')}
                     </label>
-                    <label className="flex items-center gap-3 cursor-pointer">
+                    <label className="flex items-center gap-4 cursor-pointer p-4 rounded-2xl border border-border-soft bg-surface/50 hover:bg-surface hover:border-accent transition-all duration-300">
                       <input
                         type="checkbox"
                         id="filter-verified"
                         checked={filterVerified}
                         onChange={e => setFilterVerified(e.target.checked)}
-                        className="w-5 h-5 rounded border-2 border-border-soft text-primary"
+                        className="w-5 h-5 rounded border-2 border-border-soft text-accent focus:ring-accent/20"
                       />
-                      <span className="font-black text-text-main text-sm">{lang === 'fr' ? 'Annonces vérifiées' : 'Verified only'}</span>
+                      <span className="font-bold text-text-main text-sm">{lang === 'fr' ? 'Annonces vérifiées' : 'Verified only'}</span>
                     </label>
                   </div>
                 </div>
@@ -216,24 +223,29 @@ export default function ListingsPage() {
         </AnimatePresence>
 
         {/* Results Info */}
-        <div className="flex items-center justify-between mb-10">
-          <p className="text-text-muted font-bold">
-            <span className="text-primary font-black text-2xl">{dbLoading ? '…' : filtered.length}</span>{' '}
-            {lang === 'fr' ? 'annonces trouvées' : 'listings found'}
-            {usingMock && <span className="ml-2 text-xs text-amber-600 font-medium">(données de démo)</span>}
+        <div className="flex items-center justify-between mb-12">
+          <p className="text-text-muted font-bold text-lg">
+            <span className="text-primary font-extrabold text-3xl">{dbLoading ? '…' : filtered.length}</span>{' '}
+            <span className="opacity-80">{lang === 'fr' ? 'annonces trouvées' : 'listings found'}</span>
+            {usingMock && <span className="ml-3 px-2.5 py-1 text-[10px] uppercase tracking-widest text-amber-600 bg-amber-100 rounded-full font-bold border border-amber-200">Demo</span>}
           </p>
         </div>
 
         {/* Loading skeleton */}
         {dbLoading && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {[1,2,3,4].map(i => (
-              <div key={i} className="bg-white rounded-2xl overflow-hidden border border-border-soft animate-pulse">
-                <div className="h-48 bg-gray-200" />
-                <div className="p-4 space-y-3">
-                  <div className="h-4 bg-gray-200 rounded" />
-                  <div className="h-3 bg-gray-100 rounded w-2/3" />
-                  <div className="h-5 bg-gray-200 rounded w-1/2" />
+            {[1,2,3,4,5,6,7,8].map(i => (
+              <div key={i} className="bg-surface rounded-3xl overflow-hidden border border-border-soft animate-pulse">
+                <div className="h-[220px] bg-bg-cream" />
+                <div className="p-6 space-y-4">
+                  <div className="h-5 bg-bg-cream rounded-md w-3/4" />
+                  <div className="h-3 bg-bg-cream rounded-md w-1/2" />
+                  <div className="h-px bg-border-soft/50 my-4" />
+                  <div className="flex gap-2">
+                    <div className="h-8 bg-bg-cream rounded-lg w-1/3" />
+                    <div className="h-8 bg-bg-cream rounded-lg w-1/3" />
+                    <div className="h-8 bg-bg-cream rounded-lg w-1/3" />
+                  </div>
                 </div>
               </div>
             ))}
@@ -249,20 +261,24 @@ export default function ListingsPage() {
               ))}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-32 text-center bg-bg-cream rounded-[3rem] border-2 border-dashed border-border-soft">
-              <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-6 shadow-sm">
-                <Search size={32} className="text-primary/20" />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex flex-col items-center justify-center py-32 text-center bg-surface rounded-[3rem] border border-dashed border-border-soft shadow-sm"
+            >
+              <div className="w-24 h-24 bg-bg-cream rounded-full flex items-center justify-center mb-6 shadow-inner">
+                <Search size={36} className="text-primary/20" />
               </div>
-              <h3 className="text-2xl font-black text-text-main mb-2">
+              <h3 className="text-2xl font-extrabold text-text-main mb-3">
                 {lang === 'fr' ? 'Aucun résultat trouvé' : 'No results found'}
               </h3>
-              <p className="text-text-muted mb-8 max-w-sm font-medium">
-                {lang === 'fr' ? 'Essayez de modifier vos critères de recherche.' : 'Try adjusting your search filters.'}
+              <p className="text-text-muted mb-8 max-w-md font-medium text-lg leading-relaxed">
+                {lang === 'fr' ? 'Essayez de modifier vos critères de recherche ou de retirer certains filtres.' : 'Try adjusting your search filters or removing some constraints.'}
               </p>
-              <button onClick={resetFilters} className="btn-primary">
+              <button onClick={resetFilters} className="btn-secondary py-3 px-8 text-sm">
                 {t('filter_reset')}
               </button>
-            </div>
+            </motion.div>
           )
         )}
       </div>

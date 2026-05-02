@@ -38,7 +38,7 @@ interface BookingWithJoins extends Omit<Booking, 'properties' | 'agent'> {
 
 function statusColor(status: string): { bg: string; text: string } {
   switch (status) {
-    case 'confirmed':   return { bg: '#e8f2ee', text: '#1a4d3a' };
+    case 'confirmed':   return { bg: '#e8f2ee', text: '#0F172A' };
     case 'pending':     return { bg: '#fef3c7', text: '#92400e' };
     case 'rescheduled': return { bg: '#dbeafe', text: '#1e40af' };
     case 'cancelled':   return { bg: '#fee2e2', text: '#991b1b' };
@@ -150,16 +150,16 @@ function TenantDashboard() {
   ];
 
   const sectionStyle: React.CSSProperties = {
-    background: '#fff', border: '1px solid #e0ddd7', borderRadius: 10, overflow: 'hidden',
+    background: '#fff', border: '1px solid #E2E8F0', borderRadius: 10, overflow: 'hidden',
   };
 
   // ─── Loading state ──────────────────────────────────────────────────
   if (loading) {
     return (
-      <main style={{ minHeight: '100vh', background: '#f9f7f4' }}>
+      <main style={{ minHeight: '100vh', background: '#F8FAFC' }}>
         <Navbar />
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: 12 }}>
-          <Loader2 size={32} color="#1a4d3a" style={{ animation: 'spin 1s linear infinite' }} />
+          <Loader2 size={32} color="#0F172A" style={{ animation: 'spin 1s linear infinite' }} />
           <p style={{ color: '#888', fontWeight: 600, fontSize: '0.9rem' }}>{t('dash_loading')}</p>
           <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
@@ -170,11 +170,11 @@ function TenantDashboard() {
   if (!profile) return null;
 
   return (
-    <main style={{ minHeight: '100vh', background: '#f9f7f4' }}>
+    <main style={{ minHeight: '100vh', background: '#F8FAFC' }}>
       <Navbar />
 
       {/* Header */}
-      <div style={{ paddingTop: '4rem', background: '#1a4d3a', padding: '4rem 1.5rem 1.75rem' }}>
+      <div style={{ paddingTop: '4rem', background: '#0F172A', padding: '4rem 1.5rem 1.75rem' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
           <div>
             <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: '0.85rem', marginBottom: 4 }}>{t('dash_welcome')},</p>
@@ -188,7 +188,7 @@ function TenantDashboard() {
               <img src={profile.avatar_url} alt={profile.full_name}
                 style={{ width: 52, height: 52, borderRadius: '50%', border: '3px solid rgba(255,255,255,0.3)', background: '#e8f2ee', objectFit: 'cover' }} />
             ) : (
-              <div style={{ width: 52, height: 52, borderRadius: '50%', border: '3px solid rgba(255,255,255,0.3)', background: '#e8f2ee', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '1.2rem', color: '#1a4d3a' }}>
+              <div style={{ width: 52, height: 52, borderRadius: '50%', border: '3px solid rgba(255,255,255,0.3)', background: '#e8f2ee', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '1.2rem', color: '#0F172A' }}>
                 {profile.full_name.charAt(0)}
               </div>
             )}
@@ -216,9 +216,9 @@ function TenantDashboard() {
             { icon: '✅', label: lang === 'fr' ? 'Confirmées' : 'Confirmed', val: String(bookings.filter(b => b.status === 'confirmed').length) },
             { icon: '⭐', label: lang === 'fr' ? 'Score de confiance' : 'Trust score', val: String(profile.trust_score || '—') },
           ].map(({ icon, label, val }) => (
-            <div key={label} style={{ background: '#fff', border: '1px solid #e0ddd7', borderRadius: 10, padding: '1rem' }}>
+            <div key={label} style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: 10, padding: '1rem' }}>
               <div style={{ fontSize: '1.3rem', marginBottom: 6 }}>{icon}</div>
-              <p style={{ fontWeight: 800, fontSize: '1.4rem', color: '#1c1c1c' }}>{val}</p>
+              <p style={{ fontWeight: 800, fontSize: '1.4rem', color: '#0F172A' }}>{val}</p>
               <p style={{ color: '#888', fontSize: '0.78rem' }}>{label}</p>
             </div>
           ))}
@@ -227,7 +227,7 @@ function TenantDashboard() {
         {/* Tabs */}
         <div style={sectionStyle}>
           {/* Tab bar */}
-          <div style={{ display: 'flex', borderBottom: '1px solid #e0ddd7', overflowX: 'auto' }}>
+          <div style={{ display: 'flex', borderBottom: '1px solid #E2E8F0', overflowX: 'auto' }}>
             {tabConfig.map(({ key, label, icon: Icon }) => (
               <button key={key} onClick={() => setActiveTab(key)}
                 style={{
@@ -235,8 +235,8 @@ function TenantDashboard() {
                   padding: '1rem 1.25rem', whiteSpace: 'nowrap',
                   fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer',
                   border: 'none', background: 'none',
-                  borderBottom: `2px solid ${activeTab === key ? '#1a4d3a' : 'transparent'}`,
-                  color: activeTab === key ? '#1a4d3a' : '#888',
+                  borderBottom: `2px solid ${activeTab === key ? '#0F172A' : 'transparent'}`,
+                  color: activeTab === key ? '#0F172A' : '#888',
                   transition: 'all 0.15s',
                 }}>
                 <Icon size={14} /> {label}
@@ -252,7 +252,7 @@ function TenantDashboard() {
                   <div style={{ textAlign: 'center', padding: '2.5rem 1rem' }}>
                     <Calendar size={40} color="#ccc" style={{ margin: '0 auto 12px' }} />
                     <p style={{ color: '#888', fontSize: '0.9rem' }}>{t('dash_no_bookings')}</p>
-                    <Link href="/listings" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#1a4d3a', fontWeight: 700, fontSize: '0.85rem', marginTop: 12, textDecoration: 'none' }}>
+                    <Link href="/listings" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#0F172A', fontWeight: 700, fontSize: '0.85rem', marginTop: 12, textDecoration: 'none' }}>
                       <Home size={14} /> {t('nav_listings')}
                     </Link>
                   </div>
@@ -273,7 +273,7 @@ function TenantDashboard() {
                     const sc = statusColor(bk.status);
 
                     return (
-                      <div key={bk.id} style={{ display: 'flex', gap: 12, padding: 14, background: '#f9f7f4', borderRadius: 10, border: '1px solid #ede8e0', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                      <div key={bk.id} style={{ display: 'flex', gap: 12, padding: 14, background: '#F8FAFC', borderRadius: 10, border: '1px solid #E2E8F0', alignItems: 'flex-start', flexWrap: 'wrap' }}>
                         {/* Property thumbnail */}
                         {prop.images && prop.images.length > 0 && (
                           <div style={{ position: 'relative', width: 80, height: 60, borderRadius: 8, overflow: 'hidden', flexShrink: 0 }}>
@@ -284,7 +284,7 @@ function TenantDashboard() {
                         {/* Booking details */}
                         <div style={{ flex: 1, minWidth: 180 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
-                            <p style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1c1c1c' }}>{propTitle}</p>
+                            <p style={{ fontWeight: 700, fontSize: '0.9rem', color: '#0F172A' }}>{propTitle}</p>
                             <span style={{
                               display: 'inline-block', padding: '2px 10px', borderRadius: 20,
                               fontSize: '0.7rem', fontWeight: 700,
@@ -314,20 +314,20 @@ function TenantDashboard() {
                             {agent.avatar_url ? (
                               <img src={agent.avatar_url} alt="" style={{ width: 22, height: 22, borderRadius: '50%', objectFit: 'cover' }} />
                             ) : (
-                              <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#e8f2ee', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', fontWeight: 800, color: '#1a4d3a' }}>
+                              <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#e8f2ee', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', fontWeight: 800, color: '#0F172A' }}>
                                 {agent.full_name.charAt(0)}
                               </div>
                             )}
                             <span style={{ fontSize: '0.78rem', color: '#555' }}>
                               {agent.full_name}
-                              {agent.verified && <CheckCircle2 size={10} color="#1a4d3a" style={{ marginLeft: 3, verticalAlign: 'middle' }} />}
+                              {agent.verified && <CheckCircle2 size={10} color="#0F172A" style={{ marginLeft: 3, verticalAlign: 'middle' }} />}
                             </span>
                           </div>
                         </div>
 
                         {/* Action link */}
                         <Link href={`/listings/${prop.id}`}
-                          style={{ flexShrink: 0, color: '#1a4d3a', fontSize: '0.78rem', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 3, alignSelf: 'center' }}>
+                          style={{ flexShrink: 0, color: '#0F172A', fontSize: '0.78rem', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 3, alignSelf: 'center' }}>
                           <ExternalLink size={11} /> {t('see_details')}
                         </Link>
                       </div>
@@ -344,7 +344,7 @@ function TenantDashboard() {
                   <div style={{ textAlign: 'center', padding: '2.5rem 1rem' }}>
                     <Heart size={40} color="#ccc" style={{ margin: '0 auto 12px' }} />
                     <p style={{ color: '#888', fontSize: '0.9rem' }}>{t('dash_no_saved')}</p>
-                    <Link href="/listings" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#1a4d3a', fontWeight: 700, fontSize: '0.85rem', marginTop: 12, textDecoration: 'none' }}>
+                    <Link href="/listings" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#0F172A', fontWeight: 700, fontSize: '0.85rem', marginTop: 12, textDecoration: 'none' }}>
                       <Home size={14} /> {t('nav_listings')}
                     </Link>
                   </div>
@@ -354,22 +354,22 @@ function TenantDashboard() {
                     if (!p) return null;
                     const propTitle = lang === 'fr' ? p.title : (p.title_en || p.title);
                     return (
-                      <div key={sp.id} style={{ display: 'flex', gap: 12, padding: 12, background: '#f9f7f4', borderRadius: 8, border: '1px solid #ede8e0', alignItems: 'center' }}>
+                      <div key={sp.id} style={{ display: 'flex', gap: 12, padding: 12, background: '#F8FAFC', borderRadius: 8, border: '1px solid #E2E8F0', alignItems: 'center' }}>
                         {p.images && p.images.length > 0 && (
                           <div style={{ position: 'relative', width: 80, height: 60, borderRadius: 6, overflow: 'hidden', flexShrink: 0 }}>
                             <Image src={p.images[0]} alt={propTitle} fill style={{ objectFit: 'cover' }} />
                           </div>
                         )}
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <p style={{ fontWeight: 600, fontSize: '0.875rem', color: '#1c1c1c', marginBottom: 2, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                          <p style={{ fontWeight: 600, fontSize: '0.875rem', color: '#0F172A', marginBottom: 2, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
                             {propTitle}
                           </p>
                           <p style={{ color: '#aaa', fontSize: '0.75rem', marginBottom: 4 }}>{p.neighborhood}, {p.city}</p>
-                          <p style={{ fontWeight: 700, color: '#1a4d3a', fontSize: '0.85rem' }}>
+                          <p style={{ fontWeight: 700, color: '#0F172A', fontSize: '0.85rem' }}>
                             {formatPrice(p.price)}<span style={{ fontWeight: 400, color: '#aaa', fontSize: '0.75rem' }}>/mois</span>
                           </p>
                         </div>
-                        <Link href={`/listings/${p.id}`} style={{ flexShrink: 0, color: '#1a4d3a', fontSize: '0.78rem', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 3 }}>
+                        <Link href={`/listings/${p.id}`} style={{ flexShrink: 0, color: '#0F172A', fontSize: '0.78rem', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 3 }}>
                           <ExternalLink size={11} /> {t('see_details')}
                         </Link>
                       </div>

@@ -49,7 +49,7 @@ export default function MobileMoneyModal({ isOpen, onClose, amount, propertyTitl
         boxShadow: '0 20px 60px rgba(0,0,0,0.2)', overflow: 'hidden',
       }}>
         {/* Header */}
-        <div style={{ background: '#1a4d3a', padding: '1.25rem 1.5rem', color: '#fff' }}>
+        <div style={{ background: '#0F172A', padding: '1.25rem 1.5rem', color: '#fff' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
             <h2 style={{ fontWeight: 700, fontSize: '1rem' }}>{t('pay_title')}</h2>
             <button onClick={handleClose} id="modal-close" style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 6, width: 30, height: 30, cursor: 'pointer', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -82,7 +82,7 @@ export default function MobileMoneyModal({ isOpen, onClose, amount, propertyTitl
                     onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'none'; }}
                   >
                     <div style={{ fontSize: '1.5rem', marginBottom: 4 }}>{o.emoji}</div>
-                    <div style={{ fontWeight: 700, fontSize: '0.82rem', color: '#1c1c1c' }}>{o.name}</div>
+                    <div style={{ fontWeight: 700, fontSize: '0.82rem', color: '#0F172A' }}>{o.name}</div>
                   </button>
                 ))}
               </div>
@@ -97,7 +97,7 @@ export default function MobileMoneyModal({ isOpen, onClose, amount, propertyTitl
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 8, background: op.bg, border: `1px solid ${op.border}`, marginBottom: '1.25rem' }}>
                 <span style={{ fontSize: '1.5rem' }}>{op.emoji}</span>
                 <div>
-                  <p style={{ fontWeight: 700, fontSize: '0.875rem', color: '#1c1c1c' }}>{op.name}</p>
+                  <p style={{ fontWeight: 700, fontSize: '0.875rem', color: '#0F172A' }}>{op.name}</p>
                   <p style={{ color: '#888', fontSize: '0.78rem' }}>{formatPrice(amount)}</p>
                 </div>
               </div>
@@ -105,7 +105,7 @@ export default function MobileMoneyModal({ isOpen, onClose, amount, propertyTitl
               <div style={{ marginBottom: '1rem' }}>
                 <label style={{ display: 'block', fontWeight: 600, fontSize: '0.8rem', color: '#555', marginBottom: 6 }}>{t('pay_phone')}</label>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: '#f9f7f4', border: '1px solid #e0ddd7', borderRadius: 6, padding: '10px 12px', fontSize: '0.85rem', color: '#666', flexShrink: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 6, padding: '10px 12px', fontSize: '0.85rem', color: '#666', flexShrink: 0 }}>
                     🇨🇮 +225
                   </div>
                   <input id="pay-phone-input" type="tel" value={phone} onChange={e => setPhone(e.target.value)}
@@ -139,9 +139,9 @@ export default function MobileMoneyModal({ isOpen, onClose, amount, propertyTitl
                 width: 64, height: 64, borderRadius: '50%', background: '#e8f2ee',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem',
               }}>
-                <CheckCircle2 size={30} color="#1a4d3a" />
+                <CheckCircle2 size={30} color="#0F172A" />
               </div>
-              <h3 style={{ fontWeight: 800, fontSize: '1.1rem', color: '#1c1c1c', marginBottom: '0.5rem' }}>{t('pay_success')}</h3>
+              <h3 style={{ fontWeight: 800, fontSize: '1.1rem', color: '#0F172A', marginBottom: '0.5rem' }}>{t('pay_success')}</h3>
               <p style={{ color: '#888', fontSize: '0.85rem', marginBottom: '1.5rem', lineHeight: 1.6 }}>
                 {lang === 'fr' ? 'Paiement traité avec succès. Votre quittance a été générée.' : 'Payment processed successfully. Your receipt has been generated.'}
               </p>
