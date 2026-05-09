@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     // ── Step 1: Check if profile already exists ──────────────────
     const { data: existing, error: fetchError } = await adminSupabase
       .from('profiles')
-      .select('id, verified, agent_id')
+      .select('id, verified, agent_id, full_name')
       .eq('id', userId)
       .maybeSingle();
 

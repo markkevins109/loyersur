@@ -85,45 +85,49 @@ export default function ListingsPage() {
   const hasFilters = search || filterNeighborhood || filterMaxPrice || filterRooms || filterVerified;
 
   return (
-    <main className="min-h-screen bg-bg-cream selection:bg-accent selection:text-white">
+    <main className="min-h-screen bg-bg-warm">
       <Navbar />
 
-      {/* Premium Search Header */}
-      <section className="relative pt-36 pb-20 bg-primary border-b border-white/10 overflow-hidden">
-        {/* Background glow elements */}
-        <div className="absolute inset-0 bg-[url('/noise.png')] opacity-10 mix-blend-overlay"></div>
-        <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-accent/10 rounded-full blur-[100px] pointer-events-none"></div>
+      {/* Search Hero */}
+      <section
+        className="relative pt-36 pb-20 border-b border-white/10 overflow-hidden"
+        style={{ background: 'radial-gradient(ellipse at 60% 0%, #1a2d44 0%, #0D1B2A 60%, #0a0f16 100%)' }}
+      >
+        <div className="absolute inset-0 dot-pattern opacity-100 pointer-events-none" />
+        <div className="absolute top-0 right-1/3 w-[500px] h-[500px] bg-gold/10 rounded-full blur-[120px] pointer-events-none" />
 
-        <div className="container relative z-10 px-6 mx-auto">
+        <div className="max-w-7xl relative z-10 px-6 mx-auto">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4 tracking-tight">
               {t('listings_title')}
             </h1>
-            <p className="text-white/70 font-medium text-lg mb-12">
+            <p className="text-white/65 font-light text-lg mb-12">
               {t('listings_sub')}
             </p>
 
-            {/* Search Bar */}
-            <div className="relative max-w-2xl mx-auto flex gap-3 p-3 bg-surface/10 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20">
+            {/* Search Bar — frosted glass */}
+            <div className="relative max-w-2xl mx-auto flex gap-3 p-2.5 rounded-3xl shadow-2xl border border-white/20" style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(16px)' }}>
               <div className="relative flex-1">
-                <Search size={22} className="absolute left-5 top-1/2 -translate-y-1/2 text-white/50" />
+                <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50" />
                 <input
                   id="listings-search"
                   type="text"
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   placeholder={lang === 'fr' ? 'Quartier, titre, mot-clé...' : 'Neighborhood, title, keyword...'}
-                  className="w-full bg-surface text-text-main placeholder:text-text-muted border-none rounded-2xl py-4 pl-14 pr-4 outline-none focus:ring-4 focus:ring-accent/20 transition-all font-bold shadow-inner"
+                  className="w-full bg-surface text-text-main placeholder:text-text-faint border-none rounded-2xl py-4 pl-12 pr-4 outline-none focus:ring-4 focus:ring-gold/25 transition-all font-medium shadow-inner text-sm"
                 />
               </div>
               <button
                 id="toggle-filters"
                 onClick={() => setShowFilters(!showFilters)}
-                className={`flex items-center gap-2 px-6 rounded-2xl font-bold text-sm transition-all duration-300 border ${
-                  showFilters ? 'bg-accent border-accent text-white shadow-[0_0_20px_rgba(16,185,129,0.3)]' : 'bg-surface border-transparent text-primary hover:bg-bg-cream shadow-md'
+                className={`flex items-center gap-2 px-6 rounded-2xl font-bold text-sm transition-all duration-200 ${
+                  showFilters
+                    ? 'bg-gold text-white shadow-[0_0_20px_rgba(201,168,76,0.4)] border border-gold'
+                    : 'bg-surface text-charcoal hover:border-gold hover:text-gold border border-border shadow-md'
                 }`}
               >
-                <SlidersHorizontal size={18} />
+                <SlidersHorizontal size={17} />
                 <span className="hidden sm:inline">{lang === 'fr' ? 'Filtres' : 'Filters'}</span>
               </button>
             </div>
@@ -131,7 +135,7 @@ export default function ListingsPage() {
         </div>
       </section>
 
-      <div className="container px-6 mx-auto py-16">
+      <div className="max-w-7xl px-6 mx-auto py-16">
         {/* Filter Panel */}
         <AnimatePresence>
           {showFilters && (
@@ -142,7 +146,7 @@ export default function ListingsPage() {
               transition={{ duration: 0.4, ease: "easeOut" }}
               className="mb-14 overflow-hidden"
             >
-              <div className="bg-surface border border-border-soft rounded-[2rem] p-8 shadow-[0_20px_50px_rgba(15,23,42,0.05)] relative">
+              <div className="bg-surface border border-border-soft rounded-[2rem] p-8 shadow-[0_8px_40px_rgba(26,26,24,0.06)] relative">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-bl-full pointer-events-none"></div>
 
                 <div className="flex items-center justify-between mb-8 pb-5 border-b border-border-soft">
@@ -218,8 +222,8 @@ export default function ListingsPage() {
 
         {/* Results Info */}
         <div className="flex items-center justify-between mb-12">
-          <p className="text-text-muted font-bold text-lg">
-            <span className="text-primary font-extrabold text-3xl">{dbLoading ? '…' : filtered.length}</span>{' '}
+          <p className="text-text-muted font-semibold text-lg">
+            <span className="text-charcoal font-extrabold text-3xl tabular">{dbLoading ? '…' : filtered.length}</span>{' '}
             <span className="opacity-80">{lang === 'fr' ? 'annonces trouvées' : 'listings found'}</span>
           </p>
         </div>

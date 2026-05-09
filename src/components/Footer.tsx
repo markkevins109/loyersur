@@ -8,29 +8,34 @@ export default function Footer() {
   const { t, lang } = useLang();
 
   return (
-    <footer className="bg-primary text-white pt-24 pb-12 relative overflow-hidden border-t border-white/10">
-      {/* Background glow */}
-      <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-accent/5 rounded-full blur-[100px] pointer-events-none"></div>
+    <footer className="text-white pt-20 pb-10 relative overflow-hidden" style={{ background: '#1A1A18' }}>
+      {/* Subtle gold glow top-right */}
+      <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-gold/8 rounded-full blur-[120px] pointer-events-none" />
 
-      <div className="container relative z-10 px-6 mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-20">
+      <div className="max-w-7xl px-6 mx-auto relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16 pb-16 border-b border-white/10">
+          
           {/* Brand */}
-          <div className="space-y-6">
+          <div className="space-y-5">
             <Link href="/" className="flex items-center gap-2.5 group w-fit">
-              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-accent text-white shadow-lg shadow-accent/20 group-hover:-rotate-3 transition-transform duration-300">
-                <Home size={20} strokeWidth={2.5} />
+              <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gold text-white shadow-md shadow-gold/30 group-hover:shadow-gold/50 transition-shadow">
+                <Home size={18} strokeWidth={2.5} />
               </div>
-              <span className="font-display font-extrabold text-2xl tracking-tight text-white">
-                LoyerSûr <span className="text-accent">CI</span>
+              <span className="font-extrabold text-xl tracking-tight text-white">
+                LoyerSûr <span className="text-gold">CI</span>
               </span>
             </Link>
-            <p className="text-white/60 text-sm leading-relaxed max-w-xs font-medium">
+            <p className="text-white/55 text-sm leading-relaxed font-light max-w-xs">
               {t('footer_desc')}
             </p>
-            <div className="flex items-center gap-4 pt-2">
+            <div className="flex items-center gap-3">
               {[Instagram, Facebook, Twitter].map((Icon, idx) => (
-                <a key={idx} href="#" className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 hover:bg-accent hover:border-accent hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:-translate-y-1 transition-all duration-300">
-                  <Icon size={18} />
+                <a
+                  key={idx}
+                  href="#"
+                  className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/8 border border-white/12 text-white/60 hover:bg-gold hover:text-white hover:border-gold transition-all duration-200"
+                >
+                  <Icon size={16} strokeWidth={2} />
                 </a>
               ))}
             </div>
@@ -38,10 +43,10 @@ export default function Footer() {
 
           {/* Company */}
           <div>
-            <h4 className="font-display font-extrabold text-sm uppercase tracking-widest text-accent mb-6">
+            <h4 className="font-bold text-xs uppercase tracking-[0.18em] text-white/40 mb-5">
               {t('footer_company')}
             </h4>
-            <ul className="space-y-4">
+            <ul className="space-y-3">
               {[
                 { label: t('footer_about'), href: '/about' },
                 { label: t('nav_listings'), href: '/listings' },
@@ -50,7 +55,7 @@ export default function Footer() {
                 { label: t('nav_landlord'), href: '/dashboard/landlord' },
               ].map(({ label, href }) => (
                 <li key={href}>
-                  <Link href={href} className="text-white/60 hover:text-white hover:translate-x-1 inline-block transition-all duration-300 text-sm font-medium">
+                  <Link href={href} className="text-white/55 hover:text-white transition-colors text-sm font-light">
                     {label}
                   </Link>
                 </li>
@@ -58,64 +63,57 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Quick Support */}
+          {/* Support */}
           <div>
-            <h4 className="font-display font-extrabold text-sm uppercase tracking-widest text-accent mb-6">
+            <h4 className="font-bold text-xs uppercase tracking-[0.18em] text-white/40 mb-5">
               Support
             </h4>
-            <ul className="space-y-5">
-              <li>
-                <div className="flex items-center gap-3 text-white/60 text-sm font-medium hover:text-white transition-colors cursor-default">
-                  <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center border border-white/10">
-                    <Mail size={16} className="text-accent" />
+            <ul className="space-y-4">
+              {[
+                { icon: Mail, text: 'contact@loyersur.ci' },
+                { icon: Phone, text: '+225 27 20 00 00 00' },
+                { icon: MapPin, text: "Abidjan, Côte d'Ivoire" },
+              ].map(({ icon: Icon, text }) => (
+                <li key={text}>
+                  <div className="flex items-center gap-3 text-white/55 text-sm font-light hover:text-white transition-colors cursor-default group">
+                    <Icon size={15} className="text-gold shrink-0 group-hover:scale-110 transition-transform" />
+                    {text}
                   </div>
-                  contact@loyersur.ci
-                </div>
-              </li>
-              <li>
-                <div className="flex items-center gap-3 text-white/60 text-sm font-medium hover:text-white transition-colors cursor-default">
-                  <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center border border-white/10">
-                    <Phone size={16} className="text-accent" />
-                  </div>
-                  +225 27 20 00 00 00
-                </div>
-              </li>
-              <li>
-                <div className="flex items-center gap-3 text-white/60 text-sm font-medium hover:text-white transition-colors cursor-default">
-                  <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center border border-white/10">
-                    <MapPin size={16} className="text-accent" />
-                  </div>
-                  Abidjan, Côte d&apos;Ivoire
-                </div>
-              </li>
+                </li>
+              ))}
             </ul>
           </div>
 
-          {/* Mobile Money */}
+          {/* Payments */}
           <div>
-            <h4 className="font-display font-extrabold text-sm uppercase tracking-widest text-accent mb-6">
+            <h4 className="font-bold text-xs uppercase tracking-[0.18em] text-white/40 mb-5">
               Paiements
             </h4>
-            <div className="flex flex-wrap gap-2.5">
+            <div className="flex flex-wrap gap-2 mb-5">
               {['Orange Money', 'MTN', 'Moov', 'Wave', 'Visa'].map(n => (
-                <span key={n} className="px-3.5 py-1.5 bg-white/5 rounded-lg text-[10px] font-bold uppercase tracking-widest text-white/70 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all cursor-default">
+                <span
+                  key={n}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/8 text-white/60 border border-white/10 hover:bg-white/14 hover:text-white transition-colors cursor-default"
+                >
                   {n}
                 </span>
               ))}
             </div>
-            <p className="mt-6 text-xs text-white/40 italic font-medium">
-              * 100% sécurisé via notre passerelle certifiée.
+            <p className="text-xs text-white/35 font-light">
+              🔒 {lang === 'fr' ? 'Paiements 100% sécurisés' : '100% secure payments'}
             </p>
           </div>
         </div>
 
-        {/* Bottom */}
-        <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-bold text-white/40 uppercase tracking-widest">
+        {/* Bottom bar */}
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-medium text-white/35">
           <p>{t('footer_copyright')}</p>
           <div className="flex items-center gap-6">
             <Link href="/terms" className="hover:text-white transition-colors">Conditions</Link>
             <Link href="/privacy" className="hover:text-white transition-colors">Confidentialité</Link>
-            <span className="text-accent font-extrabold px-3 py-1 bg-accent/10 rounded-full border border-accent/20">Made in CI 🇨🇮</span>
+            <span className="text-gold font-bold bg-gold/10 px-3 py-1 rounded-full border border-gold/20">
+              Made in CI 🇨🇮
+            </span>
           </div>
         </div>
       </div>
