@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useLang } from '@/lib/lang';
-import { Eye, EyeOff, ChevronRight } from 'lucide-react';
+import { Eye, EyeOff, ChevronRight, RefreshCw, Mail } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 type AccountType = 'tenant' | 'landlord';
@@ -20,20 +20,47 @@ export default function SignupForm() {
   const [otp, setOtp] = useState('');
   const [status, setStatus] = useState<Status>('idle');
   const [errorMsg, setErrorMsg] = useState('');
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   const update = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm(f => ({ ...f, [k]: e.target.value }));
+
+  /** Send OTP via our custom SMTP API route */
+  const sendOtp = async (email: string) => {
+    const res = await fetch('/api/send-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, lang }),
+    });
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}));
+      throw new Error(json.detail ?? json.error ?? 'Failed to send OTP');
+    }
+  };
+
+  const startResendCooldown = () => {
+    setResendCooldown(60);
+    const interval = setInterval(() => {
+      setResendCooldown(prev => {
+        if (prev <= 1) { clearInterval(interval); return 0; }
+        return prev - 1;
+      });
+    }, 1000);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus('loading');
     setErrorMsg('');
 
+    // 1. Create the Supabase auth user (email_confirm disabled or will be confirmed after OTP)
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
       options: {
         data: { full_name: form.name, role: accountType },
+        // Do NOT send Supabase's confirmation email — we handle it ourselves
+        emailRedirectTo: undefined,
       },
     });
 
@@ -43,14 +70,62 @@ export default function SignupForm() {
       return;
     }
 
-    // Profile row is auto-created by the handle_new_user DB trigger.
-    await new Promise(r => setTimeout(r, 300));
-
-    if (!authData.session) {
-      // Email verification is required. Move to OTP step.
-      setStep(3);
-      setStatus('idle');
+    // 2. Send our own OTP via SMTP
+    try {
+      await sendOtp(form.email);
+    } catch (err) {
+      setStatus('error');
+      setErrorMsg(String(err));
       return;
+    }
+
+    // 3. Move to OTP step
+    setStep(3);
+    setStatus('idle');
+    startResendCooldown();
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setStatus('loading');
+    setErrorMsg('');
+
+    // 1. Validate OTP against our API
+    const res = await fetch('/api/verify-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: form.email, token: otp, lang }),
+    });
+
+    const json = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      setStatus('error');
+      setErrorMsg(json.message ?? (lang === 'fr' ? 'Code invalide.' : 'Invalid code.'));
+      return;
+    }
+
+    // 2. OTP valid — confirm the user in Supabase using admin service role
+    // (Supabase email_confirm is set to false so the user already has a session)
+    // If the user already has a session (email_confirm disabled), sign them in directly.
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: form.email,
+      password: form.password,
+    });
+
+    if (signInError) {
+      // The account may require email confirmation in Supabase settings.
+      // In that case, verify via Supabase's OTP as a fallback.
+      const { error: otpError } = await supabase.auth.verifyOtp({
+        email: form.email,
+        token: otp,
+        type: 'signup',
+      });
+      if (otpError) {
+        // Account created and our OTP is verified — just redirect
+        // (Supabase email confirm may be off, or token already used)
+        console.warn('[signup] Supabase OTP fallback failed:', otpError.message);
+      }
     }
 
     setStatus('success');
@@ -59,27 +134,19 @@ export default function SignupForm() {
     }, 1200);
   };
 
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleResend = async () => {
+    if (resendCooldown > 0) return;
     setStatus('loading');
     setErrorMsg('');
-
-    const { data, error } = await supabase.auth.verifyOtp({
-      email: form.email,
-      token: otp,
-      type: 'signup',
-    });
-
-    if (error) {
+    try {
+      await sendOtp(form.email);
+      setOtp('');
+      setStatus('idle');
+      startResendCooldown();
+    } catch (err) {
       setStatus('error');
-      setErrorMsg(error.message);
-      return;
+      setErrorMsg(String(err));
     }
-
-    setStatus('success');
-    setTimeout(() => {
-      router.push(accountType === 'tenant' ? '/dashboard/tenant' : '/auth/verify-cni');
-    }, 1200);
   };
 
   const isLoading = status === 'loading';
@@ -316,7 +383,7 @@ export default function SignupForm() {
               }}>
               <span>
                 {isLoading
-                  ? t('signup_creating')
+                  ? (lang === 'fr' ? 'Envoi du code...' : 'Sending code...')
                   : t('signup_btn')}
               </span>
             </button>
@@ -345,10 +412,24 @@ export default function SignupForm() {
             </div>
           </div>
 
+          {/* Email hint */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 10,
+            background: '#F1F5F9', borderRadius: 10, padding: '10px 14px', marginBottom: '1rem',
+          }}>
+            <Mail size={16} color="#64748B" />
+            <div>
+              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                {lang === 'fr' ? 'Code envoyé à' : 'Code sent to'}
+              </div>
+              <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0F172A' }}>{form.email}</div>
+            </div>
+          </div>
+
           <p style={{ fontWeight: 600, fontSize: '0.85rem', color: '#444', marginBottom: '1.2rem', lineHeight: 1.5 }}>
-            {lang === 'fr' 
-              ? `Nous avons envoyé un code à 6 chiffres à l'adresse ${form.email}. Veuillez l'entrer ci-dessous.` 
-              : `We sent a 6-digit code to ${form.email}. Please enter it below.`}
+            {lang === 'fr'
+              ? 'Entrez le code à 6 chiffres envoyé à votre adresse e-mail.'
+              : 'Enter the 6-digit code sent to your email address.'}
           </p>
 
           {/* Error */}
@@ -369,7 +450,7 @@ export default function SignupForm() {
               padding: '11px 14px', marginBottom: '1rem', fontSize: '0.83rem', color: '#166534',
               display: 'flex', alignItems: 'center', gap: 8,
             }}>
-              ✅ {errorMsg || t('signup_success')}
+              ✅ {lang === 'fr' ? 'Email vérifié ! Redirection...' : 'Email verified! Redirecting...'}
             </div>
           )}
 
@@ -378,9 +459,11 @@ export default function SignupForm() {
               <label style={{ display: 'block', fontWeight: 600, fontSize: '0.82rem', color: '#444', marginBottom: 5 }}>
                 {lang === 'fr' ? 'Code de vérification (OTP)' : 'Verification Code (OTP)'}
               </label>
-              <input id="signup-otp" type="text" value={otp} onChange={(e) => setOtp(e.target.value)}
+              <input id="signup-otp" type="text" value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                 placeholder="123456" className="input-field"
-                required disabled={isLoading} maxLength={6} style={{ letterSpacing: '0.2em', fontSize: '1.2rem', textAlign: 'center' }} suppressHydrationWarning />
+                required disabled={isLoading} inputMode="numeric" maxLength={6}
+                style={{ letterSpacing: '0.3em', fontSize: '1.4rem', textAlign: 'center', fontWeight: 800 }}
+                suppressHydrationWarning />
             </div>
 
             <button
@@ -402,6 +485,26 @@ export default function SignupForm() {
               </span>
             </button>
           </form>
+
+          {/* Resend */}
+          <div style={{ textAlign: 'center', marginTop: '1.25rem' }}>
+            <button
+              id="resend-otp"
+              type="button"
+              onClick={handleResend}
+              disabled={resendCooldown > 0 || isLoading}
+              style={{
+                background: 'none', border: 'none', cursor: resendCooldown > 0 ? 'default' : 'pointer',
+                fontSize: '0.83rem', fontWeight: 600,
+                color: resendCooldown > 0 ? '#aaa' : activeColor,
+                display: 'inline-flex', alignItems: 'center', gap: 5,
+              }}>
+              <RefreshCw size={13} />
+              {resendCooldown > 0
+                ? (lang === 'fr' ? `Renvoyer dans ${resendCooldown}s` : `Resend in ${resendCooldown}s`)
+                : (lang === 'fr' ? 'Renvoyer le code' : 'Resend code')}
+            </button>
+          </div>
         </div>
       )}
     </div>

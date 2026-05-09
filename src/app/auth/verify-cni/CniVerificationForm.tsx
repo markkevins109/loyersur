@@ -147,18 +147,48 @@ export default function CniVerificationForm() {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   React.useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) {
-        supabase.from('profiles').select('full_name, role, agent_id').eq('id', data.user.id).single()
-          .then(({ data: pData }) => {
-            if (pData) {
-              setProfileName(pData.full_name);
-              setProfileRole(pData.role);
-              setHasAgentId(!!pData.agent_id);
-            }
-          });
+    async function loadProfile() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Try to read the existing profile row
+      const { data: pData } = await supabase
+        .from('profiles')
+        .select('full_name, role, agent_id')
+        .eq('id', user.id)
+        .single();
+
+      if (pData) {
+        // Profile exists — use it
+        setProfileName(pData.full_name);
+        setProfileRole(pData.role);
+        setHasAgentId(!!pData.agent_id);
+      } else {
+        // Profile is missing (trigger didn't fire / email not yet confirmed)
+        // Read the role from auth metadata and create the row now via the admin API
+        const meta = user.user_metadata ?? {};
+        const role = (meta.role as string) || 'tenant';
+        const full_name = (meta.full_name as string) || user.email || 'User';
+
+        await fetch('/api/finalize-profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user.id,
+            full_name,
+            email: user.email ?? '',
+            phone: meta.phone ?? null,
+            role,
+            // not verified yet — just creating the stub row
+          }),
+        });
+
+        setProfileName(full_name);
+        setProfileRole(role);
+        setHasAgentId(false);
       }
-    });
+    }
+    loadProfile();
   }, []);
 
   const handleImageSelect = useCallback(async (side: 'front' | 'back', e: React.ChangeEvent<HTMLInputElement>) => {
@@ -285,32 +315,51 @@ export default function CniVerificationForm() {
       stream.getTracks().forEach(track => track.stop());
 
       if (matchSuccess) {
-         // 4. Update Database on complete success
+         // 4. Finalize profile via server-side API (bypasses RLS)
          const { data: { user } } = await supabase.auth.getUser();
-         if (user) {
-            const updatePayload: any = {
-              verified: true,
-              cni_number: vRes?.cardNumber || null,
-              cni_dob: vRes?.dob || null,
-              cni_expiry: vRes?.expiry || null,
-              cni_mrz: lines.join('\n')
-            };
+         const meta = user?.user_metadata ?? {};
+         const role = profileRole || (meta.role as string) || 'tenant';
+         const full_name = profileName || (meta.full_name as string) || user?.email || 'User';
 
-            if (profileRole === 'landlord' && !hasAgentId) {
+         if (user) {
+            // Generate agent_id for landlords who don't have one yet
+            let agentId: string | null = null;
+            if (role === 'landlord' && !hasAgentId) {
               const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-              let newAgentId = 'AGN-';
-              for (let i = 0; i < 6; i++) newAgentId += chars.charAt(Math.floor(Math.random() * chars.length));
-              updatePayload.agent_id = newAgentId;
+              agentId = 'AGN-';
+              for (let i = 0; i < 6; i++) agentId += chars.charAt(Math.floor(Math.random() * chars.length));
             }
 
-            await supabase.from('profiles').update(updatePayload).eq('id', user.id);
+            const res = await fetch('/api/finalize-profile', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                userId: user.id,
+                full_name,
+                email: user.email ?? '',
+                phone: meta.phone ?? null,
+                role,
+                verified: true,
+                ...(agentId ? { agent_id: agentId } : {}),
+              }),
+            });
+
+            const resJson = await res.json().catch(() => ({}));
+            if (!res.ok) {
+              console.error('[CNI] finalize-profile failed:', resJson);
+            } else {
+              console.log('[CNI] Profile finalized:', resJson);
+            }
          }
          
          setPhase('pass');
          setSuccessMsg(t('verify_pass_sub'));
          URL.revokeObjectURL(frontImg.preview || '');
          URL.revokeObjectURL(backImg.preview || '');
-         setTimeout(() => router.push('/dashboard/landlord'), 2500);
+
+         // Redirect to the correct dashboard based on role
+         const finalRole = profileRole || (user?.user_metadata?.role as string) || 'tenant';
+         setTimeout(() => router.push(finalRole === 'landlord' ? '/dashboard/landlord' : '/dashboard/tenant'), 2500);
       } else {
          setErrorMsg(lang === 'fr' ? "Échec de la vérification biométrique. Le visage ne correspond pas." : "Biometric verification failed. Face does not match.");
          setPhase('fail');

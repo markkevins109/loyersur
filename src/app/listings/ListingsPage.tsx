@@ -5,7 +5,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import PropertyCard from '@/components/PropertyCard';
 import { supabase, type Property as DBProperty } from '@/lib/supabase';
-import { mockProperties } from '@/lib/mockData';
+
 import { Search, SlidersHorizontal, X, MapPin, Building2, Wallet2, LayoutGrid } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -46,7 +46,6 @@ export default function ListingsPage() {
   // DB properties — will be loaded from Supabase
   const [dbProperties, setDbProperties] = useState<ReturnType<typeof toCardShape>[]>([]);
   const [dbLoading, setDbLoading] = useState(true);
-  const [usingMock, setUsingMock] = useState(false);
 
   useEffect(() => {
     async function loadProperties() {
@@ -56,13 +55,10 @@ export default function ListingsPage() {
         .eq('available', true)
         .order('created_at', { ascending: false });
 
-      if (error || !data || data.length === 0) {
-        // Fall back to mock data if DB isn't set up yet
-        setUsingMock(true);
-        setDbProperties(mockProperties as ReturnType<typeof toCardShape>[]);
-      } else {
+      if (!error && data && data.length > 0) {
         setDbProperties(data.map(p => toCardShape(p as DBProperty)));
       }
+      // If error or empty, dbProperties stays [] — empty state will be shown
       setDbLoading(false);
     }
     loadProperties();
@@ -104,9 +100,7 @@ export default function ListingsPage() {
               {t('listings_title')}
             </h1>
             <p className="text-white/70 font-medium text-lg mb-12">
-              {usingMock
-                ? (lang === 'fr' ? 'Annonces de démonstration — connectez Supabase pour voir les vraies annonces' : 'Demo listings — connect Supabase to see real listings')
-                : t('listings_sub')}
+              {t('listings_sub')}
             </p>
 
             {/* Search Bar */}
@@ -227,7 +221,6 @@ export default function ListingsPage() {
           <p className="text-text-muted font-bold text-lg">
             <span className="text-primary font-extrabold text-3xl">{dbLoading ? '…' : filtered.length}</span>{' '}
             <span className="opacity-80">{lang === 'fr' ? 'annonces trouvées' : 'listings found'}</span>
-            {usingMock && <span className="ml-3 px-2.5 py-1 text-[10px] uppercase tracking-widest text-amber-600 bg-amber-100 rounded-full font-bold border border-amber-200">Demo</span>}
           </p>
         </div>
 
@@ -261,7 +254,7 @@ export default function ListingsPage() {
               ))}
             </div>
           ) : (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               className="flex flex-col items-center justify-center py-32 text-center bg-surface rounded-[3rem] border border-dashed border-border-soft shadow-sm"
@@ -269,15 +262,32 @@ export default function ListingsPage() {
               <div className="w-24 h-24 bg-bg-cream rounded-full flex items-center justify-center mb-6 shadow-inner">
                 <Search size={36} className="text-primary/20" />
               </div>
-              <h3 className="text-2xl font-extrabold text-text-main mb-3">
-                {lang === 'fr' ? 'Aucun résultat trouvé' : 'No results found'}
-              </h3>
-              <p className="text-text-muted mb-8 max-w-md font-medium text-lg leading-relaxed">
-                {lang === 'fr' ? 'Essayez de modifier vos critères de recherche ou de retirer certains filtres.' : 'Try adjusting your search filters or removing some constraints.'}
-              </p>
-              <button onClick={resetFilters} className="btn-secondary py-3 px-8 text-sm">
-                {t('filter_reset')}
-              </button>
+              {hasFilters ? (
+                <>
+                  <h3 className="text-2xl font-extrabold text-text-main mb-3">
+                    {lang === 'fr' ? 'Aucun résultat trouvé' : 'No results found'}
+                  </h3>
+                  <p className="text-text-muted mb-8 max-w-md font-medium text-lg leading-relaxed">
+                    {lang === 'fr'
+                      ? 'Essayez de modifier vos critères de recherche ou de retirer certains filtres.'
+                      : 'Try adjusting your search filters or removing some constraints.'}
+                  </p>
+                  <button onClick={resetFilters} className="btn-secondary py-3 px-8 text-sm">
+                    {t('filter_reset')}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <h3 className="text-2xl font-extrabold text-text-main mb-3">
+                    {lang === 'fr' ? 'Aucune propriété trouvée' : 'No properties found'}
+                  </h3>
+                  <p className="text-text-muted max-w-md font-medium text-lg leading-relaxed">
+                    {lang === 'fr'
+                      ? 'Il n\'y a aucune annonce disponible pour le moment. Revenez bientôt !'
+                      : 'There are no listings available at the moment. Check back soon!'}
+                  </p>
+                </>
+              )}
             </motion.div>
           )
         )}

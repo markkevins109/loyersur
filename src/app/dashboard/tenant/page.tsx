@@ -80,18 +80,46 @@ function TenantDashboard() {
         .single();
 
       if (!prof) {
-        router.replace('/auth/login');
-        return;
+        // Profile row is missing — create it via the admin API and retry
+        const meta = user.user_metadata ?? {};
+        const role = (meta.role as string) || 'tenant';
+        await fetch('/api/finalize-profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user.id,
+            full_name: (meta.full_name as string) || user.email || 'User',
+            email: user.email ?? '',
+            phone: meta.phone ?? null,
+            role,
+          }),
+        });
+        // Redirect landlords to CNI verification after profile creation
+        if (role === 'landlord') {
+          router.replace('/auth/verify-cni');
+          return;
+        }
+        // Re-fetch the just-created tenant profile
+        const { data: retryProf } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        if (!retryProf || cancelled) {
+          router.replace('/auth/login');
+          return;
+        }
+        setProfile(retryProf as Profile);
+      } else {
+        // Profile exists — redirect landlords to their dashboard
+        if (prof.role === 'landlord') {
+          router.replace('/dashboard/landlord');
+          return;
+        }
+        if (cancelled) return;
+        setProfile(prof as Profile);
       }
 
-      // 3. Redirect landlords to their dashboard
-      if (prof.role === 'landlord') {
-        router.replace('/dashboard/landlord');
-        return;
-      }
-
-      if (cancelled) return;
-      setProfile(prof as Profile);
 
       // 4. Fetch bookings with property + agent joins
       const { data: bookingData } = await supabase

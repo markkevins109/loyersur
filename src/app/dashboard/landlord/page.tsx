@@ -51,6 +51,9 @@ export default function LandlordDashboard() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [bookingAction, setBookingAction] = useState<Record<string, 'loading' | 'done'>>({});
+  const [declineModal, setDeclineModal] = useState<{ bookingId: string; tenantName: string } | null>(null);
+  const [declineReason, setDeclineReason] = useState('');
+  const [declineLoading, setDeclineLoading] = useState(false);
 
   // Add property form state
   const [addForm, setAddForm] = useState({
@@ -78,7 +81,7 @@ export default function LandlordDashboard() {
         .single();
 
       if (!prof || prof.role !== 'landlord') {
-        router.push('/auth/login');
+        router.push('/auth/signup');
         return;
       }
 
@@ -87,6 +90,7 @@ export default function LandlordDashboard() {
         router.push('/auth/verify-cni');
         return;
       }
+
 
       setProfile(prof as Profile);
 
@@ -222,17 +226,33 @@ export default function LandlordDashboard() {
   };
 
   // ── Handle booking actions ─────────────────────────────────
-  const handleBookingAction = async (bookingId: string, action: 'confirmed' | 'cancelled') => {
+  const handleBookingAction = async (bookingId: string, action: 'confirmed' | 'cancelled', reason?: string) => {
     setBookingAction(prev => ({ ...prev, [bookingId]: 'loading' }));
-    const { error } = await supabase
-      .from('bookings')
-      .update({ status: action })
-      .eq('id', bookingId);
-
-    if (!error) {
-      setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: action } : b));
-      setBookingAction(prev => ({ ...prev, [bookingId]: 'done' }));
+    try {
+      const res = await fetch('/api/booking-action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookingId, action, declineReason: reason ?? '' }),
+      });
+      if (res.ok) {
+        setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: action } : b));
+        setBookingAction(prev => ({ ...prev, [bookingId]: 'done' }));
+      }
+    } catch (e) {
+      console.error('[booking-action]', e);
+    } finally {
+      setBookingAction(prev => ({ ...prev, [bookingId]: prev[bookingId] === 'loading' ? 'done' : prev[bookingId] }));
     }
+  };
+
+  // ── Handle decline with mandatory reason ──────────────────
+  const handleDeclineSubmit = async () => {
+    if (!declineModal || !declineReason.trim()) return;
+    setDeclineLoading(true);
+    await handleBookingAction(declineModal.bookingId, 'cancelled', declineReason.trim());
+    setDeclineLoading(false);
+    setDeclineModal(null);
+    setDeclineReason('');
   };
 
   const handleSignOut = async () => {
@@ -460,14 +480,14 @@ export default function LandlordDashboard() {
                             <button
                               onClick={() => handleBookingAction(booking.id, 'confirmed')}
                               disabled={isLoading}
-                              style={{ flex: 1, padding: '8px', background: '#0F172A', color: '#fff', border: 'none', borderRadius: 6, fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+                              style={{ flex: 1, padding: '8px', background: '#10B981', color: '#fff', border: 'none', borderRadius: 6, fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
                               {isLoading ? <div style={{ width: 12, height: 12, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', animation: 'spin 0.6s linear infinite' }} /> : <Check size={13} />}
                               {lang === 'fr' ? 'Confirmer' : 'Confirm'}
                             </button>
                             <button
-                              onClick={() => handleBookingAction(booking.id, 'cancelled')}
+                              onClick={() => { setDeclineModal({ bookingId: booking.id, tenantName: (booking.tenant as any)?.full_name ?? 'le locataire' }); setDeclineReason(''); }}
                               disabled={isLoading}
-                              style={{ flex: 1, padding: '8px', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 6, fontSize: '0.8rem', fontWeight: 600, color: '#888', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+                              style={{ flex: 1, padding: '8px', background: '#fff5f5', border: '1px solid #fca5a5', borderRadius: 6, fontSize: '0.8rem', fontWeight: 600, color: '#b91c1c', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
                               <X size={13} /> {lang === 'fr' ? 'Refuser' : 'Decline'}
                             </button>
                             {tenant?.email && (
@@ -640,6 +660,80 @@ export default function LandlordDashboard() {
           </div>
         </div>
       </div>
+
+      {/* ── Decline Reason Modal ────────────────────────────── */}
+      {declineModal && (
+        <div
+          onClick={e => { if (e.target === e.currentTarget) { setDeclineModal(null); setDeclineReason(''); } }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+          <div style={{ background: '#fff', borderRadius: 16, padding: '2rem', maxWidth: 440, width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '1rem' }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: '#fff5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <X size={18} color="#b91c1c" />
+              </div>
+              <div>
+                <p style={{ fontWeight: 800, fontSize: '1rem', color: '#0F172A', margin: 0 }}>
+                  {lang === 'fr' ? 'Motif du refus' : 'Decline reason'}
+                </p>
+                <p style={{ fontSize: '0.78rem', color: '#888', margin: 0 }}>
+                  {lang === 'fr' ? `Pour ${declineModal.tenantName}` : `For ${declineModal.tenantName}`}
+                </p>
+              </div>
+            </div>
+
+            <p style={{ fontSize: '0.83rem', color: '#64748B', marginBottom: '0.75rem', lineHeight: 1.5 }}>
+              {lang === 'fr'
+                ? 'Un motif est obligatoire. Le locataire recevra un e-mail avec votre explication.'
+                : 'A reason is required. The tenant will receive an email with your explanation.'}
+            </p>
+
+            <textarea
+              autoFocus
+              rows={4}
+              value={declineReason}
+              onChange={e => setDeclineReason(e.target.value)}
+              placeholder={lang === 'fr'
+                ? 'Ex : Le bien est déjà réservé pour cette date, merci de votre compréhension.'
+                : 'e.g. The property is already booked for that date. Thank you for understanding.'}
+              style={{
+                width: '100%', boxSizing: 'border-box', padding: '10px 12px',
+                border: `1.5px solid ${declineReason.trim() ? '#0F172A' : '#E2E8F0'}`,
+                borderRadius: 8, fontSize: '0.85rem', color: '#0F172A',
+                resize: 'vertical', outline: 'none', fontFamily: 'inherit', lineHeight: 1.5,
+                transition: 'border-color 0.15s',
+              }}
+            />
+            <p style={{ fontSize: '0.75rem', color: declineReason.trim() ? '#10B981' : '#f97316', margin: '4px 0 1.25rem', fontWeight: 600 }}>
+              {declineReason.trim()
+                ? (lang === 'fr' ? '✓ Motif renseigné' : '✓ Reason provided')
+                : (lang === 'fr' ? '⚠ Motif obligatoire' : '⚠ Reason required')}
+            </p>
+
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                onClick={() => { setDeclineModal(null); setDeclineReason(''); }}
+                disabled={declineLoading}
+                style={{ flex: 1, padding: '0.75rem', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 8, fontWeight: 600, fontSize: '0.85rem', color: '#555', cursor: 'pointer' }}>
+                {lang === 'fr' ? 'Annuler' : 'Cancel'}
+              </button>
+              <button
+                onClick={handleDeclineSubmit}
+                disabled={!declineReason.trim() || declineLoading}
+                style={{
+                  flex: 1, padding: '0.75rem', background: !declineReason.trim() || declineLoading ? '#fca5a5' : '#b91c1c',
+                  border: 'none', borderRadius: 8, fontWeight: 700, fontSize: '0.85rem', color: '#fff',
+                  cursor: !declineReason.trim() || declineLoading ? 'not-allowed' : 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  transition: 'background 0.15s',
+                }}>
+                {declineLoading
+                  ? <><div style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', animation: 'spin 0.6s linear infinite' }} /> {lang === 'fr' ? 'Envoi...' : 'Sending...'}</>
+                  : <><X size={14} /> {lang === 'fr' ? 'Confirmer le refus' : 'Confirm decline'}</>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </main>
